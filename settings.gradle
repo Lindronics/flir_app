@@ -1,2 +1,2 @@
-include ':app', ':thermalsdk-release'
+include ':app', ':thermalsdk-release', ':androidsdk-release'
 rootProject.name='FLIR App'
