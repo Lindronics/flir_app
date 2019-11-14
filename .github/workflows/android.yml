@@ -13,7 +13,7 @@ jobs:
       run: |
         wget http://cdn.cloud.flir.se/update/SSF/Atlas/1.0.5/Android/thermal-sdk-android-java-1.0.5.tar.gz
         ls
-        tar xvzf file.tar.gz thermal-sdk-android-java-1.0.5.tar.gz
+        tar xvzf thermal-sdk-android-java-1.0.5.tar.gz
         ls
     - name: set up JDK 1.8
       uses: actions/setup-java@v1
