@@ -12,9 +12,10 @@ jobs:
     - name: get FLIR SDK
       run: |
         wget http://cdn.cloud.flir.se/update/SSF/Atlas/1.0.5/Android/thermal-sdk-android-java-1.0.5.tar.gz
-        ls
-        tar xvzf thermal-sdk-android-java-1.0.5.tar.gz
-        ls
+        mkdir SDK
+        tar xvzf thermal-sdk-android-java-1.0.5.tar.gz -C SDK
+        cp SDK/thermal-sdk-android-java-1.0.5/thermalsdk-release.aar thermalsdk-release
+        cp SDK/thermal-sdk-android-java-1.0.5/androidsdk-release.aar androidsdk-release
     - name: set up JDK 1.8
       uses: actions/setup-java@v1
       with:
