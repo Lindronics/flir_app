@@ -75,33 +75,4 @@ public class CameraHandler {
         }
         camera.disconnect();
     }
-
-    /**
-     * Add a found camera to the list of known cameras
-     */
-    public void add(Identity identity) {
-        foundCameraIdentities.add(identity);
-    }
-
-    @Nullable
-    public Identity get(int i) {
-        return foundCameraIdentities.get(i);
-    }
-
-    /**
-     * Get a read only list of all found cameras
-     */
-    @Nullable
-    public List<Identity> getCameraList() {
-        return Collections.unmodifiableList(foundCameraIdentities);
-    }
-
-    /**
-     * Clear all known network cameras
-     */
-    public void clear() {
-        foundCameraIdentities.clear();
-    }
-
-
 }

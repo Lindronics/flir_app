@@ -11,8 +11,12 @@ import com.flir.thermalsdk.androidsdk.ThermalSdkAndroid;
 import com.flir.thermalsdk.androidsdk.live.connectivity.UsbPermissionHandler;
 import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
+import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
+import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.log.ThermalLog;
+
+import org.jetbrains.annotations.NotNull;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -82,13 +86,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCameraFound(Identity identity) {
             Log.d(TAG, "onCameraFound identity:" + identity);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    showMessage.show("Device discovered!");
-                    cameraHandler.add(identity);
-                }
-            });
             connect(identity);
         }
 
@@ -129,9 +126,47 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        showMessage.showOnUI("Connected to camera!" + identity.toString());
+        // If no errors, connect to camera
+        cameraHandler.connect(identity, connectionStatusListener);
         connectedIdentity = identity;
     }
+
+    /**
+     * Disconnect from a camera
+     */
+    private void disconnect() {
+        Log.d(TAG, "disconnect() called with: connectedIdentity = [" + connectedIdentity + "]");
+        connectedIdentity = null;
+        cameraHandler.disconnect();
+        startDiscovery();
+    }
+
+    private ConnectionStatusListener connectionStatusListener = new ConnectionStatusListener() {
+        @Override
+        public void onConnectionStatusChanged(@NotNull ConnectionStatus connectionStatus, @org.jetbrains.annotations.Nullable ErrorCode errorCode) {
+            Log.d(TAG, "onConnectionStatusChanged connectionStatus:" + connectionStatus + " errorCode:" + errorCode);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                    switch (connectionStatus) {
+                        case CONNECTING: break;
+                        case CONNECTED: {
+                            showMessage.showOnUI("Connected to camera!");
+                        }
+                        break;
+                        case DISCONNECTING: break;
+                        case DISCONNECTED: {
+                            disconnect();
+                            showMessage.showOnUI("Disconnected from camera!");
+                        }
+                        break;
+                    }
+                }
+            });
+        }
+    };
 
     /**
      * Show message on the screen
