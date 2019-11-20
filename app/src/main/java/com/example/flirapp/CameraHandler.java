@@ -1,7 +1,5 @@
 package com.example.flirapp;
 
-import androidx.annotation.Nullable;
-
 import com.flir.thermalsdk.live.Camera;
 import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
@@ -9,14 +7,7 @@ import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryFactory;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
-public class CameraHandler {
-
-    // Discovered FLIR cameras
-    private LinkedList<Identity> foundCameraIdentities = new LinkedList<>();
+class CameraHandler {
 
     // Connected FLIR Camera
     private Camera camera;
@@ -32,14 +23,14 @@ public class CameraHandler {
     /**
      * Empty constructor for now
      */
-    public CameraHandler() { }
+    CameraHandler() { }
 
     /**
      * Start discovery of USB and Emulators
      * @param cameraDiscoveryListener -
      * @param discoveryStatus Current discovery status
      */
-    public void startDiscovery(DiscoveryEventListener cameraDiscoveryListener, DiscoveryStatus discoveryStatus) {
+    void startDiscovery(DiscoveryEventListener cameraDiscoveryListener, DiscoveryStatus discoveryStatus) {
         DiscoveryFactory.getInstance().scan(cameraDiscoveryListener, CommunicationInterface.USB);
         discoveryStatus.started();
     }
@@ -48,7 +39,7 @@ public class CameraHandler {
      * Stop discovery of USB and Emulators
      * @param discoveryStatus Current discovery status
      */
-    public void stopDiscovery(DiscoveryStatus discoveryStatus) {
+    void stopDiscovery(DiscoveryStatus discoveryStatus) {
         DiscoveryFactory.getInstance().stop(CommunicationInterface.EMULATOR, CommunicationInterface.USB);
         discoveryStatus.stopped();
     }
@@ -58,7 +49,7 @@ public class CameraHandler {
      * @param identity Identity of a discovered FLIR camera
      * @param connectionStatusListener Event listener
      */
-    public void connect(Identity identity, ConnectionStatusListener connectionStatusListener) {
+    void connect(Identity identity, ConnectionStatusListener connectionStatusListener) {
         camera = new Camera();
         camera.connect(identity, connectionStatusListener);
     }
@@ -66,7 +57,7 @@ public class CameraHandler {
     /**
      * Disconnect a FLIR One camera
      */
-    public void disconnect() {
+    void disconnect() {
         if (camera == null) {
             return;
         }

@@ -8,7 +8,6 @@ import android.widget.Toast;
 
 import com.flir.thermalsdk.ErrorCode;
 import com.flir.thermalsdk.androidsdk.ThermalSdkAndroid;
-import com.flir.thermalsdk.androidsdk.live.connectivity.UsbPermissionHandler;
 import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
@@ -25,7 +24,6 @@ public class MainActivity extends AppCompatActivity {
 
     private CameraHandler cameraHandler;
     private Identity connectedIdentity = null;
-    private UsbPermissionHandler usbPermissionHandler = new UsbPermissionHandler();
 
 
     /**
@@ -66,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Callback for discovery status
      */
-    private CameraHandler.DiscoveryStatus discoveryStatusListener = new CameraHandler.DiscoveryStatus() {
+    private final CameraHandler.DiscoveryStatus discoveryStatusListener = new CameraHandler.DiscoveryStatus() {
         @Override
         public void started() {
             showMessage.showOnUI("Starting discovery.");
@@ -81,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Callback for camera discovered
      */
-    private DiscoveryEventListener cameraDiscoveryListener = new DiscoveryEventListener() {
+    private final DiscoveryEventListener cameraDiscoveryListener = new DiscoveryEventListener() {
 
         @Override
         public void onCameraFound(Identity identity) {
@@ -93,12 +91,9 @@ public class MainActivity extends AppCompatActivity {
         public void onDiscoveryError(CommunicationInterface communicationInterface, ErrorCode errorCode) {
             Log.d(TAG, "onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    stopDiscovery();
-                    showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
-                }
+            runOnUiThread(() -> {
+                stopDiscovery();
+                showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
             });
         }
     };
@@ -141,28 +136,26 @@ public class MainActivity extends AppCompatActivity {
         startDiscovery();
     }
 
-    private ConnectionStatusListener connectionStatusListener = new ConnectionStatusListener() {
+    private final ConnectionStatusListener connectionStatusListener = new ConnectionStatusListener() {
         @Override
         public void onConnectionStatusChanged(@NotNull ConnectionStatus connectionStatus, @org.jetbrains.annotations.Nullable ErrorCode errorCode) {
             Log.d(TAG, "onConnectionStatusChanged connectionStatus:" + connectionStatus + " errorCode:" + errorCode);
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
+            runOnUiThread(() -> {
 
-                    switch (connectionStatus) {
-                        case CONNECTING: break;
-                        case CONNECTED: {
-                            showMessage.showOnUI("Connected to camera!");
-                        }
-                        break;
-                        case DISCONNECTING: break;
-                        case DISCONNECTED: {
-                            disconnect();
-                            showMessage.showOnUI("Disconnected from camera!");
-                        }
-                        break;
+                switch (connectionStatus) {
+                    case CONNECTING: break;
+                    case CONNECTED: {
+                        showMessage.showOnUI("Connected to camera!");
                     }
+                    break;
+                    case DISCONNECTING:
+                        break;
+                    case DISCONNECTED: {
+                        disconnect();
+                        showMessage.showOnUI("Disconnected from camera!");
+                    }
+                    break;
                 }
             });
         }
@@ -171,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Show message on the screen
      */
-    public interface ShowMessage {
+    interface ShowMessage {
         void show(String message);
         void showOnUI(String message);
     }
@@ -184,12 +177,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void showOnUI(String message) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    show(message);
-                }
-            });
+            runOnUiThread(() -> show(message));
         }
     };
 }
