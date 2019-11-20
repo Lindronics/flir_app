@@ -65,12 +65,12 @@ public class MainActivity extends AppCompatActivity {
     private CameraHandler.DiscoveryStatus discoveryStatusListener = new CameraHandler.DiscoveryStatus() {
         @Override
         public void started() {
-            showMessage.show("Starting discovery.");
+            showMessage.showOnUI("Starting discovery.");
         }
 
         @Override
         public void stopped() {
-            showMessage.show("Stopping discovery.");
+            showMessage.showOnUI("Stopped discovery.");
         }
     };
 
@@ -89,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
                     cameraHandler.add(identity);
                 }
             });
+            connect(identity);
         }
 
         @Override
@@ -113,20 +114,22 @@ public class MainActivity extends AppCompatActivity {
         // Stop discovery when connected
         cameraHandler.stopDiscovery(discoveryStatusListener);
 
+
         // Already connected
         if (connectedIdentity != null) {
             Log.d(TAG, "connect(), already connected to a camera!");
-            showMessage.show("connect(), already connected to a camera!");
+            showMessage.showOnUI("connect(), already connected to a camera!");
             return;
         }
 
         // No camera available
         if (identity == null) {
             Log.d(TAG, "connect(), no camera available!");
-            showMessage.show("connect(), no camera available!");
+            showMessage.showOnUI("connect(), no camera available!");
             return;
         }
 
+        showMessage.showOnUI("Connected to camera!" + identity.toString());
         connectedIdentity = identity;
     }
 
@@ -135,12 +138,23 @@ public class MainActivity extends AppCompatActivity {
      */
     public interface ShowMessage {
         void show(String message);
+        void showOnUI(String message);
     }
 
     private ShowMessage showMessage = new ShowMessage() {
         @Override
         public void show(String message) {
             Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void showOnUI(String message) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    show(message);
+                }
+            });
         }
     };
 }

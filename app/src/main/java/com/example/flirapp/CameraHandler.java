@@ -40,7 +40,7 @@ public class CameraHandler {
      * @param discoveryStatus Current discovery status
      */
     public void startDiscovery(DiscoveryEventListener cameraDiscoveryListener, DiscoveryStatus discoveryStatus) {
-        DiscoveryFactory.getInstance().scan(cameraDiscoveryListener, CommunicationInterface.EMULATOR, CommunicationInterface.USB);
+        DiscoveryFactory.getInstance().scan(cameraDiscoveryListener, CommunicationInterface.USB);
         discoveryStatus.started();
     }
 
