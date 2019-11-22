@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
+@SuppressWarnings("DuplicateBranchesInSwitch")
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -33,11 +34,12 @@ public class MainActivity extends AppCompatActivity {
     private ImageView rgbImage;
     private ImageView firImage;
 
-    private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue(21);
+    private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
 
 
     /**
      * Executed when activity is created
+     *
      * @param savedInstanceState -
      */
     @Override
@@ -58,7 +60,6 @@ public class MainActivity extends AppCompatActivity {
 
         startDiscovery();
     }
-
 
 
     /**
@@ -99,11 +100,12 @@ public class MainActivity extends AppCompatActivity {
         public void onCameraFound(Identity identity) {
             Log.d(TAG, "onCameraFound identity:" + identity);
 
+            // TODO this badly needs fixing...
             // If in debug mode, connect to emulator
             if (BuildConfig.DEBUG && cameraHandler.isEmulator(identity)) {
                 connect(identity);
             }
-            // Otherwise, only connect to camera
+            // Otherwise, connect to camera
             else if (cameraHandler.isCamera(identity)) {
                 connect(identity);
             }
@@ -113,9 +115,9 @@ public class MainActivity extends AppCompatActivity {
         public void onDiscoveryError(CommunicationInterface communicationInterface, ErrorCode errorCode) {
             Log.d(TAG, "onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
 
-            runOnUiThread(() -> {
-                showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
-            });
+            runOnUiThread(() ->
+                    showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode)
+            );
         }
     };
 
@@ -181,14 +183,16 @@ public class MainActivity extends AppCompatActivity {
                 framesBuffer.put(new FrameDataHolder(firBitmap, rgbBitmap));
             } catch (InterruptedException e) {
                 // If interrupted while waiting for adding a new item in the queue
-                Log.e(TAG,"images(), unable to add incoming images to frames buffer, exception:" + e);
+                Log.e(TAG, "images(), unable to add incoming images to frames buffer, exception:" + e);
             }
 
             runOnUiThread(() -> {
-                Log.d(TAG,"framebuffer size:"+framesBuffer.size());
+                Log.d(TAG, "framebuffer size:" + framesBuffer.size());
                 FrameDataHolder poll = framesBuffer.poll();
-                firImage.setImageBitmap(poll.firBitmap);
-                rgbImage.setImageBitmap(poll.rgbBitmap);
+                if (poll != null) {
+                    firImage.setImageBitmap(poll.firBitmap);
+                    rgbImage.setImageBitmap(poll.rgbBitmap);
+                }
             });
         }
     };
@@ -204,7 +208,8 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> {
 
                 switch (connectionStatus) {
-                    case CONNECTING: break;
+                    case CONNECTING:
+                        break;
                     case CONNECTED: {
                         showMessage.showOnUI("Connected to camera!");
                         cameraHandler.startStream(streamDataListener);
@@ -227,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
      */
     interface ShowMessage {
         void show(String message);
+
         void showOnUI(String message);
     }
 
@@ -234,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void show(String message) {
             Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-            TextView view = (TextView) findViewById(R.id.textBox);
+            TextView view = findViewById(R.id.textBox);
             view.setText(view.getText() + "\n" + message);
         }
 

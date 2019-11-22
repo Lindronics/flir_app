@@ -14,9 +14,11 @@ import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryFactory;
 import com.flir.thermalsdk.live.streaming.ThermalImageStreamListener;
 
+import java.util.Objects;
+
 class CameraHandler {
 
-    private String TAG = "Camera handler";
+    private static final String TAG = "Camera handler";
 
     // Connected FLIR Camera
     private Camera camera;
@@ -39,12 +41,14 @@ class CameraHandler {
     /**
      * Empty constructor for now
      */
-    CameraHandler() { }
+    CameraHandler() {
+    }
 
     /**
      * Start discovery of USB and Emulators
+     *
      * @param cameraDiscoveryListener -
-     * @param discoveryStatus Current discovery status
+     * @param discoveryStatus         Current discovery status
      */
     void startDiscovery(DiscoveryEventListener cameraDiscoveryListener, DiscoveryStatus discoveryStatus) {
         DiscoveryFactory.getInstance().scan(cameraDiscoveryListener, CommunicationInterface.EMULATOR, CommunicationInterface.USB);
@@ -53,6 +57,7 @@ class CameraHandler {
 
     /**
      * Stop discovery of USB and Emulators
+     *
      * @param discoveryStatus Current discovery status
      */
     void stopDiscovery(DiscoveryStatus discoveryStatus) {
@@ -62,7 +67,8 @@ class CameraHandler {
 
     /**
      * Connect to a FLIR One camera
-     * @param identity Identity of a discovered FLIR camera
+     *
+     * @param identity                 Identity of a discovered FLIR camera
      * @param connectionStatusListener Event listener
      */
     void connect(Identity identity, ConnectionStatusListener connectionStatusListener) {
@@ -86,6 +92,7 @@ class CameraHandler {
 
     /**
      * Determines whether a device is the FLIR One emulator
+     *
      * @param identity identity of the device
      * @return true if the device is the emulator
      */
@@ -95,6 +102,7 @@ class CameraHandler {
 
     /**
      * Determines whether a device is a FLIR One camera
+     *
      * @param identity identity of the device
      * @return true if the device is a FLIR One camera
      */
@@ -132,11 +140,11 @@ class CameraHandler {
         public void accept(ThermalImage thermalImage) {
 
             // Get a bitmap with only IR data
-            thermalImage.getFusion().setFusionMode(FusionMode.THERMAL_ONLY);
+            Objects.requireNonNull(thermalImage.getFusion()).setFusionMode(FusionMode.THERMAL_ONLY);
             Bitmap firBitmap = BitmapAndroid.createBitmap(thermalImage.getImage()).getBitMap();
 
             // Get a bitmap with the visual image
-            Bitmap rgbBitmap = BitmapAndroid.createBitmap(thermalImage.getFusion().getPhoto()).getBitMap();
+            Bitmap rgbBitmap = BitmapAndroid.createBitmap(Objects.requireNonNull(thermalImage.getFusion().getPhoto())).getBitMap();
 
             // Add images to cache
             streamDataListener.images(firBitmap, rgbBitmap);
