@@ -24,21 +24,24 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <ImageView
                 android:id="@+id/fir_view"
-                android:layout_width="125dp"
-                android:layout_height="125dp"
-                android:contentDescription="image with IR and visual data mixed"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:contentDescription="FIR image"
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
 
             <ImageView
                 android:id="@+id/rgb_view"
-                android:layout_width="125dp"
-                android:layout_height="125dp"
-                android:contentDescription="image with only visual image"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:contentDescription="RGB image"
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
         </LinearLayout>
