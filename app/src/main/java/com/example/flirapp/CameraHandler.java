@@ -31,7 +31,7 @@ class CameraHandler {
      * @param discoveryStatus Current discovery status
      */
     void startDiscovery(DiscoveryEventListener cameraDiscoveryListener, DiscoveryStatus discoveryStatus) {
-        DiscoveryFactory.getInstance().scan(cameraDiscoveryListener, CommunicationInterface.USB);
+        DiscoveryFactory.getInstance().scan(cameraDiscoveryListener, CommunicationInterface.EMULATOR, CommunicationInterface.USB);
         discoveryStatus.started();
     }
 
@@ -65,5 +65,17 @@ class CameraHandler {
             camera.unsubscribeAllStreams();
         }
         camera.disconnect();
+        camera = null;
+    }
+
+
+    Boolean isEmulator(Identity identity) {
+        return identity.deviceId.contains("EMULATED FLIR ONE");
+    }
+
+    Boolean isCamera(Identity identity) {
+        boolean isFlirOneEmulator = identity.deviceId.contains("EMULATED FLIR ONE");
+        boolean isCppEmulator = identity.deviceId.contains("C++ Emulator");
+        return !isFlirOneEmulator && !isCppEmulator;
     }
 }

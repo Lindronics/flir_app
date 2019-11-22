@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.flir.thermalsdk.ErrorCode;
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+
     /**
      * Start camera discovery
      */
@@ -84,7 +86,15 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCameraFound(Identity identity) {
             Log.d(TAG, "onCameraFound identity:" + identity);
-            connect(identity);
+
+            // If in debug mode, connect to emulator
+            if (BuildConfig.DEBUG && cameraHandler.isEmulator(identity)) {
+                connect(identity);
+            }
+            // Otherwise, only connect to camera
+            else if (cameraHandler.isCamera(identity)) {
+                connect(identity);
+            }
         }
 
         @Override
@@ -92,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
 
             runOnUiThread(() -> {
-                stopDiscovery();
                 showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
             });
         }
@@ -122,8 +131,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // If no errors, connect to camera
-        cameraHandler.connect(identity, connectionStatusListener);
+        showMessage.showOnUI("connecting to " + identity);
         connectedIdentity = identity;
+        cameraHandler.connect(identity, connectionStatusListener);
     }
 
     /**
@@ -133,6 +143,8 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "disconnect() called with: connectedIdentity = [" + connectedIdentity + "]");
         connectedIdentity = null;
         cameraHandler.disconnect();
+
+        // Start discovery when disconnected
         startDiscovery();
     }
 
@@ -173,6 +185,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void show(String message) {
             Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+            TextView view = (TextView) findViewById(R.id.textBox);
+            view.setText(view.getText() + "\n" + message);
         }
 
         @Override
