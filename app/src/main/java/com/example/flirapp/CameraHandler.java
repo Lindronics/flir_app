@@ -1,16 +1,32 @@
 package com.example.flirapp;
 
+import android.graphics.Bitmap;
+import android.util.Log;
+
+import com.flir.thermalsdk.androidsdk.image.BitmapAndroid;
+import com.flir.thermalsdk.image.ThermalImage;
+import com.flir.thermalsdk.image.fusion.FusionMode;
 import com.flir.thermalsdk.live.Camera;
 import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryFactory;
+import com.flir.thermalsdk.live.streaming.ThermalImageStreamListener;
 
 class CameraHandler {
 
+    private String TAG = "Camera handler";
+
     // Connected FLIR Camera
     private Camera camera;
+
+    public interface StreamDataListener {
+        void images(FrameDataHolder dataHolder);
+        void images(Bitmap msxBitmap, Bitmap dcBitmap);
+    }
+
+    private StreamDataListener streamDataListener;
 
     /**
      * Possible discovery statuses
@@ -68,14 +84,62 @@ class CameraHandler {
         camera = null;
     }
 
-
+    /**
+     * Determines whether a device is the FLIR One emulator
+     * @param identity identity of the device
+     * @return true if the device is the emulator
+     */
     Boolean isEmulator(Identity identity) {
         return identity.deviceId.contains("EMULATED FLIR ONE");
     }
 
+    /**
+     * Determines whether a device is a FLIR One camera
+     * @param identity identity of the device
+     * @return true if the device is a FLIR One camera
+     */
     Boolean isCamera(Identity identity) {
         boolean isFlirOneEmulator = identity.deviceId.contains("EMULATED FLIR ONE");
         boolean isCppEmulator = identity.deviceId.contains("C++ Emulator");
         return !isFlirOneEmulator && !isCppEmulator;
     }
+
+    /**
+     * Called when a new image is available (non-UI-thread)
+     */
+    private final ThermalImageStreamListener thermalImageStreamListener = new ThermalImageStreamListener() {
+        @Override
+        public void onImageReceived() {
+            Log.d(TAG, "onImageReceived(), we got another ThermalImage");
+            camera.withImage(this, handleIncomingImage);
+        }
+    };
+
+    /**
+     * Subscribes to camera stream
+     */
+    void startStream(StreamDataListener listener) {
+        this.streamDataListener = listener;
+        camera.subscribeStream(thermalImageStreamListener);
+    }
+
+    /**
+     * For processing images and updating UI
+     */
+    private final Camera.Consumer<ThermalImage> handleIncomingImage = new Camera.Consumer<ThermalImage>() {
+
+        @Override
+        public void accept(ThermalImage thermalImage) {
+
+            // Get a bitmap with only IR data
+            thermalImage.getFusion().setFusionMode(FusionMode.THERMAL_ONLY);
+            Bitmap firBitmap = BitmapAndroid.createBitmap(thermalImage.getImage()).getBitMap();
+
+            // Get a bitmap with the visual image
+            Bitmap rgbBitmap = BitmapAndroid.createBitmap(thermalImage.getFusion().getPhoto()).getBitMap();
+
+            // Add images to cache
+            streamDataListener.images(firBitmap, rgbBitmap);
+        }
+    };
 }

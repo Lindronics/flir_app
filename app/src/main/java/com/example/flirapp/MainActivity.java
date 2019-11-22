@@ -2,8 +2,10 @@ package com.example.flirapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -18,6 +20,8 @@ import com.flir.thermalsdk.log.ThermalLog;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.LinkedBlockingQueue;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,6 +29,11 @@ public class MainActivity extends AppCompatActivity {
 
     private CameraHandler cameraHandler;
     private Identity connectedIdentity = null;
+
+    private ImageView rgbImage;
+    private ImageView firImage;
+
+    private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue(21);
 
 
     /**
@@ -43,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
         ThermalSdkAndroid.init(getApplicationContext(), enableLoggingInDebug);
 
         cameraHandler = new CameraHandler();
+
+        rgbImage = findViewById(R.id.rgb_view);
+        firImage = findViewById(R.id.fir_view);
 
         startDiscovery();
     }
@@ -148,6 +160,42 @@ public class MainActivity extends AppCompatActivity {
         startDiscovery();
     }
 
+    /**
+     * Defines behaviour for when images are received
+     */
+    private final CameraHandler.StreamDataListener streamDataListener = new CameraHandler.StreamDataListener() {
+
+        @Override
+        public void images(FrameDataHolder dataHolder) {
+
+            runOnUiThread(() -> {
+                firImage.setImageBitmap(dataHolder.firBitmap);
+                rgbImage.setImageBitmap(dataHolder.rgbBitmap);
+            });
+        }
+
+        @Override
+        public void images(Bitmap firBitmap, Bitmap rgbBitmap) {
+
+            try {
+                framesBuffer.put(new FrameDataHolder(firBitmap, rgbBitmap));
+            } catch (InterruptedException e) {
+                // If interrupted while waiting for adding a new item in the queue
+                Log.e(TAG,"images(), unable to add incoming images to frames buffer, exception:" + e);
+            }
+
+            runOnUiThread(() -> {
+                Log.d(TAG,"framebuffer size:"+framesBuffer.size());
+                FrameDataHolder poll = framesBuffer.poll();
+                firImage.setImageBitmap(poll.firBitmap);
+                rgbImage.setImageBitmap(poll.rgbBitmap);
+            });
+        }
+    };
+
+    /**
+     * Defines behaviour vor changes of the connection status
+     */
     private final ConnectionStatusListener connectionStatusListener = new ConnectionStatusListener() {
         @Override
         public void onConnectionStatusChanged(@NotNull ConnectionStatus connectionStatus, @org.jetbrains.annotations.Nullable ErrorCode errorCode) {
@@ -159,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
                     case CONNECTING: break;
                     case CONNECTED: {
                         showMessage.showOnUI("Connected to camera!");
+                        cameraHandler.startStream(streamDataListener);
                     }
                     break;
                     case DISCONNECTING:
