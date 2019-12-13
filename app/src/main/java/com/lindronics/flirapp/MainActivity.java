@@ -1,31 +1,22 @@
 package com.lindronics.flirapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ToggleButton;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.flir.thermalsdk.ErrorCode;
 import com.flir.thermalsdk.androidsdk.ThermalSdkAndroid;
 import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
-import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
-import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.log.ThermalLog;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.ArrayList;
 
 
-@SuppressWarnings("DuplicateBranchesInSwitch")
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -33,15 +24,9 @@ public class MainActivity extends AppCompatActivity {
     private CameraHandler cameraHandler;
     private Identity connectedIdentity = null;
 
-    private ImageView rgbImage;
-    private ImageView firImage;
-
-    private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
-
-    private ToggleButton cameraButton;
-
-    private ImageWriter imageWriter = null;
-
+    private ListView cameraListView;
+    private ArrayList<Identity> foundCameras;
+    CameraArrayAdapter cameraArrayAdapter;
 
     /**
      * Executed when activity is created
@@ -61,14 +46,13 @@ public class MainActivity extends AppCompatActivity {
 
         cameraHandler = new CameraHandler();
 
-        rgbImage = findViewById(R.id.rgb_view);
-        firImage = findViewById(R.id.fir_view);
-
-        cameraButton = findViewById(R.id.camera_button);
+        foundCameras = new ArrayList<>();
+        cameraArrayAdapter = new CameraArrayAdapter(this, foundCameras);
+        cameraListView = findViewById(R.id.camera_list);
+        cameraListView.setAdapter(cameraArrayAdapter);
 
         startDiscovery();
     }
-
 
     /**
      * Start camera discovery
@@ -107,140 +91,39 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCameraFound(Identity identity) {
             Log.d(TAG, "onCameraFound identity:" + identity);
+            foundCameras.add(identity);
 
-            // TODO this badly needs fixing...
-            // If in debug mode, connect to emulator
-            if (BuildConfig.DEBUG && cameraHandler.isEmulator(identity)) {
-                connect(identity);
-                showMessage.showOnUI("Connecting to emulator");
+            // Stop discovery when connected
+            stopDiscovery();
+
+            // Already connected
+            if (connectedIdentity != null) {
+                Log.d(TAG, "connect(), already connected to a camera!");
+                showMessage.showOnUI("connect(), already connected to a camera!");
+                return;
             }
-            // Otherwise, connect to camera
-            else if (cameraHandler.isCamera(identity)) {
-                connect(identity);
-                showMessage.showOnUI("Connecting to camera");
+
+            // No camera available
+            if (identity == null) {
+                Log.d(TAG, "connect(), no camera available!");
+                showMessage.showOnUI("connect(), no camera available!");
+                return;
             }
+
+            // If no errors, connect to camera
+            showMessage.showOnUI("connecting to " + identity);
+            connectedIdentity = identity;
+        }
+
+        @Override
+        public void onCameraLost(Identity identity) {
+            foundCameras.remove(identity);
         }
 
         @Override
         public void onDiscoveryError(CommunicationInterface communicationInterface, ErrorCode errorCode) {
             Log.d(TAG, "onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
-
-            runOnUiThread(() ->
-                    showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode)
-            );
-        }
-    };
-
-    /**
-     * Connect to a Camera
-     */
-    private void connect(Identity identity) {
-
-        // Stop discovery when connected
-        stopDiscovery();
-
-
-        // Already connected
-        if (connectedIdentity != null) {
-            Log.d(TAG, "connect(), already connected to a camera!");
-            showMessage.showOnUI("connect(), already connected to a camera!");
-            return;
-        }
-
-        // No camera available
-        if (identity == null) {
-            Log.d(TAG, "connect(), no camera available!");
-            showMessage.showOnUI("connect(), no camera available!");
-            return;
-        }
-
-        // If no errors, connect to camera
-        showMessage.showOnUI("connecting to " + identity);
-        connectedIdentity = identity;
-        cameraHandler.connect(identity, connectionStatusListener);
-    }
-
-    /**
-     * Disconnect from a camera
-     */
-    private void disconnect() {
-        Log.d(TAG, "disconnect() called with: connectedIdentity = [" + connectedIdentity + "]");
-        connectedIdentity = null;
-        cameraHandler.disconnect();
-
-        // Start discovery when disconnected
-        startDiscovery();
-    }
-
-    /**
-     * Defines behaviour for when images are received
-     */
-    private final CameraHandler.StreamDataListener streamDataListener = new CameraHandler.StreamDataListener() {
-
-        @Override
-        public void images(FrameDataHolder dataHolder) {
-
-            runOnUiThread(() -> {
-                firImage.setImageBitmap(dataHolder.firBitmap);
-                rgbImage.setImageBitmap(dataHolder.rgbBitmap);
-            });
-        }
-
-        @Override
-        public void images(Bitmap firBitmap, Bitmap rgbBitmap) {
-
-            try {
-                framesBuffer.put(new FrameDataHolder(firBitmap, rgbBitmap));
-            } catch (InterruptedException e) {
-                // If interrupted while waiting for adding a new item in the queue
-                Log.e(TAG, "images(), unable to add incoming images to frames buffer, exception:" + e);
-            }
-
-            runOnUiThread(() -> {
-                Log.d(TAG, "framebuffer size:" + framesBuffer.size());
-                FrameDataHolder poll = framesBuffer.poll();
-                if (poll != null) {
-                    firImage.setImageBitmap(poll.firBitmap);
-                    rgbImage.setImageBitmap(poll.rgbBitmap);
-                }
-            });
-
-            if (imageWriter != null) {
-                imageWriter.saveImages(firBitmap, rgbBitmap);
-            }
-        }
-    };
-
-    /**
-     * Defines behaviour vor changes of the connection status
-     */
-    private final ConnectionStatusListener connectionStatusListener = new ConnectionStatusListener() {
-        @Override
-        public void onConnectionStatusChanged(@NotNull ConnectionStatus connectionStatus, @org.jetbrains.annotations.Nullable ErrorCode errorCode) {
-            Log.d(TAG, "onConnectionStatusChanged connectionStatus:" + connectionStatus + " errorCode:" + errorCode);
-
-            runOnUiThread(() -> {
-
-                switch (connectionStatus) {
-                    case CONNECTING:
-                        break;
-                    case CONNECTED: {
-                        showMessage.showOnUI("Connected to camera!");
-                        cameraHandler.startStream(streamDataListener);
-                        cameraButton.setVisibility(View.VISIBLE);
-                    }
-                    break;
-                    case DISCONNECTING:
-                        break;
-                    case DISCONNECTED: {
-                        disconnect();
-                        showMessage.showOnUI("Disconnected from camera!");
-                        cameraButton.setVisibility(View.INVISIBLE);
-                        endCapture();
-                    }
-                    break;
-                }
-            });
+            showMessage.showOnUI("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
         }
     };
 
@@ -256,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
     private ShowMessage showMessage = new ShowMessage() {
         @Override
         public void show(String message) {
-            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
             TextView view = findViewById(R.id.textBox);
             view.setText(view.getText() + "\n" + message);
         }
@@ -266,32 +149,4 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> show(message));
         }
     };
-
-
-    /**
-     * Event listener for starting or stopping camera capture/recording
-     *
-     * @param view Toggle button
-     */
-    public void toggleCapture(View view) {
-        ToggleButton button = (ToggleButton) view;
-        if (button.isChecked()) {
-            button.setBackgroundDrawable(getDrawable(R.drawable.ic_camera_capture_recording));
-            startCapture();
-        } else {
-            button.setBackgroundDrawable(getDrawable(R.drawable.ic_camera_capture_ready));
-            endCapture();
-        }
-    }
-
-    private void startCapture() {
-        imageWriter = new ImageWriter(this);
-        showMessage.showOnUI("Started recording");
-
-    }
-
-    private void endCapture() {
-        imageWriter = null;
-        showMessage.showOnUI("Stopped recording");
-    }
 }

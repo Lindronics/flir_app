@@ -22,39 +22,12 @@
             app:layout_constraintTop_toTopOf="parent" />
 
 
-        <LinearLayout
+        <ListView
+            android:id="@+id/camera_list"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_height="match_parent">
+        </ListView>
 
-            <ImageView
-                android:id="@+id/fir_view"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:contentDescription="FIR image"
-                android:maxWidth="50dp"
-                android:minWidth="50dp" />
-
-            <ImageView
-                android:id="@+id/rgb_view"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="match_parent"
-                android:contentDescription="RGB image"
-                android:maxWidth="50dp"
-                android:minWidth="50dp" />
-        </LinearLayout>
-
-        <ToggleButton
-            android:id="@+id/camera_button"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center_horizontal"
-            android:text="Record"
-            android:onClick="toggleCapture"
-            android:visibility="invisible"
-            android:background="@drawable/ic_camera_capture_ready"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
