@@ -25,6 +25,7 @@ class CameraHandler {
 
     public interface StreamDataListener {
         void images(FrameDataHolder dataHolder);
+
         void images(Bitmap msxBitmap, Bitmap dcBitmap);
     }
 
@@ -35,6 +36,7 @@ class CameraHandler {
      */
     public interface DiscoveryStatus {
         void started();
+
         void stopped();
     }
 

@@ -268,6 +268,11 @@ public class MainActivity extends AppCompatActivity {
     };
 
 
+    /**
+     * Event listener for starting or stopping camera capture/recording
+     *
+     * @param view Toggle button
+     */
     public void toggleCapture(View view) {
         ToggleButton button = (ToggleButton) view;
         if (button.isChecked()) {

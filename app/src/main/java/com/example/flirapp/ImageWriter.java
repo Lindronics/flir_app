@@ -1,5 +1,6 @@
 package com.example.flirapp;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -17,52 +18,31 @@ import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Handles writing images to the file system
+ */
 class ImageWriter {
 
-    private Context context;
+    private final Context context;
 
     ImageWriter(Context context) {
         this.context = context;
     }
 
-//    private void writeImage(Bitmap image, String path) {
-//        try {
-//            FileOutputStream out = new FileOutputStream(path);
-//            MediaStore.Images.Media.insertImage(context.getContentResolver(), image, path , "test");
-//
-////            image.compress(Bitmap.CompressFormat.PNG, 100, out);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//
-//    }
-
-//    private void writeImage(Bitmap image, String name) {
-//        OutputStream out = null;
-//        String strDirectory = Environment.getExternalStorageDirectory().toString();
-//
-//        File f = new File(strDirectory, name);
-//        try {
-//            out = new FileOutputStream(f);
-//
-//            image.compress(Bitmap.CompressFormat.JPEG, 85, out);
-//            out.flush();
-//            out.close();
-//
-//
-//            MediaStore.Images.Media.insertImage(context.getContentResolver(),
-//                    f.getAbsolutePath(), f.getName(), f.getName());
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-
+    /**
+     * Writes an image to file system.
+     *
+     * @param image Bitmap to write
+     * @param name  File name of the image
+     * @param time  Current timestamp
+     */
     private void writeImage(Bitmap image, String name, String time) {
         String IMAGES_FOLDER_NAME = "FLIR_App";
         OutputStream out = null;
 
         try {
+
+            // If Android Q or later, use MediaStore
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentResolver resolver = context.getContentResolver();
 
@@ -79,6 +59,9 @@ class ImageWriter {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+
+                // *** UNTESTED ***
+                // If before android Q, use legacy file storage
             } else {
                 String imagesDir = Environment.getExternalStoragePublicDirectory(
                         Environment.DIRECTORY_DCIM).toString() + File.separator + IMAGES_FOLDER_NAME;
@@ -103,8 +86,16 @@ class ImageWriter {
         }
     }
 
+    /**
+     * Saves FIR and RGB image to file system
+     *
+     * @param fir FIR Bitmap
+     * @param rgb RGB Bitmap
+     */
     void saveImages(Bitmap fir, Bitmap rgb) {
         Date now = new Date();
+
+        @SuppressLint("SimpleDateFormat")
         String timeStamp = new SimpleDateFormat("yyy_MM_dd_HH_mm_ss_SSS").format(now);
 
         writeImage(fir, "fir_" + timeStamp + ".png", Long.toString(now.getTime()));
