@@ -276,8 +276,10 @@ public class MainActivity extends AppCompatActivity {
     public void toggleCapture(View view) {
         ToggleButton button = (ToggleButton) view;
         if (button.isChecked()) {
+            button.setBackgroundDrawable(getDrawable(R.drawable.ic_camera_capture_recording));
             startCapture();
         } else {
+            button.setBackgroundDrawable(getDrawable(R.drawable.ic_camera_capture_ready));
             endCapture();
         }
     }
