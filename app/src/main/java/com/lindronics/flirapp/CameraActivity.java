@@ -19,6 +19,7 @@ import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.log.ThermalLog;
+import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -56,6 +57,13 @@ public class CameraActivity extends AppCompatActivity {
         firImage = findViewById(R.id.fir_view);
 
         cameraButton = findViewById(R.id.camera_button);
+
+
+        Bundle extras = getIntent().getExtras();
+        Gson gson = new Gson();
+        Identity cameraIdentity = gson.fromJson(extras.getString("cameraIdentity"), Identity.class);
+
+        cameraHandler.connect(cameraIdentity, connectionStatusListener);
     }
 
     /**

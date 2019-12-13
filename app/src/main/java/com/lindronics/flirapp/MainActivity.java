@@ -234,5 +234,4 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> show(message));
         }
     };
-
 }

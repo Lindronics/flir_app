@@ -1,13 +1,16 @@
 package com.lindronics.flirapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.flir.thermalsdk.live.Identity;
+import com.google.gson.Gson;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,9 +31,22 @@ public class CameraArrayAdapter extends ArrayAdapter<Identity> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView = inflater.inflate(R.layout.camera_list_row, parent, false);
 
-        TextView cameraName = rowView.findViewById(R.id.camera_name);
         Identity cameraIdentity = identityList.get(position);
+
+        TextView cameraName = rowView.findViewById(R.id.camera_name);
         cameraName.setText(cameraIdentity.deviceId);
+
+        Button cameraActivityButton = rowView.findViewById(R.id.camera_activity_button);
+        cameraActivityButton.setOnClickListener((View view) -> {
+
+            // Convert identity to JSON, as it is not serializable and the class is final
+            Gson gson = new Gson();
+            String serializedIdentity = gson.toJson(cameraIdentity);
+
+            Intent i = new Intent(context, CameraActivity.class);
+            i.putExtra("cameraIdentity", serializedIdentity);
+            context.startActivity(i);
+        });
 
         return rowView;
     }
