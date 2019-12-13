@@ -12,24 +12,29 @@ import android.widget.TextView;
 import com.flir.thermalsdk.live.Identity;
 import com.google.gson.Gson;
 
-import java.util.HashMap;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 public class CameraArrayAdapter extends ArrayAdapter<Identity> {
     private final Context context;
     private List<Identity> identityList;
 
-    public CameraArrayAdapter(Context context, List<Identity> identityList) {
+    CameraArrayAdapter(Context context, List<Identity> identityList) {
         super(context, -1, identityList);
         this.context = context;
         this.identityList = identityList;
     }
 
+    @NotNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View rowView, @NotNull ViewGroup parent) {
         LayoutInflater inflater = (LayoutInflater) context
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View rowView = inflater.inflate(R.layout.camera_list_row, parent, false);
+
+        if (rowView == null) {
+            rowView = inflater.inflate(R.layout.camera_list_row, parent, false);
+        }
 
         Identity cameraIdentity = identityList.get(position);
 

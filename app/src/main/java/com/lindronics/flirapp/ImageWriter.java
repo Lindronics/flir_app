@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Handles writing images to the file system
@@ -55,7 +56,7 @@ class ImageWriter {
 
                 Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
                 try {
-                    out = resolver.openOutputStream(imageUri);
+                    out = resolver.openOutputStream(Objects.requireNonNull(imageUri));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -69,6 +70,7 @@ class ImageWriter {
                 File file = new File(imagesDir);
 
                 if (!file.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
                     file.mkdir();
                 }
 

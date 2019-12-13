@@ -1,30 +1,20 @@
 package com.lindronics.flirapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ToggleButton;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.flir.thermalsdk.ErrorCode;
 import com.flir.thermalsdk.androidsdk.ThermalSdkAndroid;
 import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
-import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
-import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.log.ThermalLog;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -133,10 +123,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDiscoveryError(CommunicationInterface communicationInterface, ErrorCode errorCode) {
             Log.d(TAG, "onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
-
-            runOnUiThread(() ->
-                    showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode)
-            );
+            showMessage.showOnUI("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode);
         }
     };
 
