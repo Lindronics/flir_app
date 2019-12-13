@@ -45,6 +45,15 @@
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
         </LinearLayout>
+
+        <ToggleButton
+            android:id="@+id/camera_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center_horizontal"
+            android:text="Record"
+            android:onClick="toggleCapture"
+            android:visibility="invisible"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

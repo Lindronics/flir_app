@@ -5,9 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.flir.thermalsdk.ErrorCode;
 import com.flir.thermalsdk.androidsdk.ThermalSdkAndroid;
@@ -36,6 +38,10 @@ public class MainActivity extends AppCompatActivity {
 
     private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
 
+    private ToggleButton cameraButton;
+
+    private ImageWriter imageWriter = null;
+
 
     /**
      * Executed when activity is created
@@ -57,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
 
         rgbImage = findViewById(R.id.rgb_view);
         firImage = findViewById(R.id.fir_view);
+
+        cameraButton = findViewById(R.id.camera_button);
 
         startDiscovery();
     }
@@ -104,10 +112,12 @@ public class MainActivity extends AppCompatActivity {
             // If in debug mode, connect to emulator
             if (BuildConfig.DEBUG && cameraHandler.isEmulator(identity)) {
                 connect(identity);
+                showMessage.showOnUI("Connecting to emulator");
             }
             // Otherwise, connect to camera
             else if (cameraHandler.isCamera(identity)) {
                 connect(identity);
+                showMessage.showOnUI("Connecting to camera");
             }
         }
 
@@ -127,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
     private void connect(Identity identity) {
 
         // Stop discovery when connected
-        cameraHandler.stopDiscovery(discoveryStatusListener);
+        stopDiscovery();
 
 
         // Already connected
@@ -194,6 +204,10 @@ public class MainActivity extends AppCompatActivity {
                     rgbImage.setImageBitmap(poll.rgbBitmap);
                 }
             });
+
+            if (imageWriter != null) {
+                imageWriter.saveImages(firBitmap, rgbBitmap);
+            }
         }
     };
 
@@ -213,6 +227,7 @@ public class MainActivity extends AppCompatActivity {
                     case CONNECTED: {
                         showMessage.showOnUI("Connected to camera!");
                         cameraHandler.startStream(streamDataListener);
+                        cameraButton.setVisibility(View.VISIBLE);
                     }
                     break;
                     case DISCONNECTING:
@@ -220,6 +235,8 @@ public class MainActivity extends AppCompatActivity {
                     case DISCONNECTED: {
                         disconnect();
                         showMessage.showOnUI("Disconnected from camera!");
+                        cameraButton.setVisibility(View.INVISIBLE);
+                        endCapture();
                     }
                     break;
                 }
@@ -249,4 +266,25 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() -> show(message));
         }
     };
+
+
+    public void toggleCapture(View view) {
+        ToggleButton button = (ToggleButton) view;
+        if (button.isChecked()) {
+            startCapture();
+        } else {
+            endCapture();
+        }
+    }
+
+    private void startCapture() {
+        imageWriter = new ImageWriter(this);
+        showMessage.showOnUI("Started recording");
+
+    }
+
+    private void endCapture() {
+        imageWriter = null;
+        showMessage.showOnUI("Stopped recording");
+    }
 }
