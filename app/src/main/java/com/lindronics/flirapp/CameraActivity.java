@@ -1,24 +1,19 @@
 package com.lindronics.flirapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.flir.thermalsdk.ErrorCode;
-import com.flir.thermalsdk.androidsdk.ThermalSdkAndroid;
-import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
-import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
-import com.flir.thermalsdk.log.ThermalLog;
 import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
@@ -42,9 +37,9 @@ public class CameraActivity extends AppCompatActivity {
 
 
     /**
-     * Executed when activity is created
+     * Executed when activity is created.
+     * Get camera identity from intent and connect to camera.
      *
-     * @param savedInstanceState -
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,15 +50,20 @@ public class CameraActivity extends AppCompatActivity {
 
         rgbImage = findViewById(R.id.rgb_view);
         firImage = findViewById(R.id.fir_view);
-
         cameraButton = findViewById(R.id.camera_button);
-
 
         Bundle extras = getIntent().getExtras();
         Gson gson = new Gson();
-        Identity cameraIdentity = gson.fromJson(extras.getString("cameraIdentity"), Identity.class);
 
+        if (extras == null) {
+            finish();
+            return;
+        }
+
+        String identityString = extras.getString("cameraIdentity");
+        Identity cameraIdentity = gson.fromJson(identityString, Identity.class);
         cameraHandler.connect(cameraIdentity, connectionStatusListener);
+
     }
 
     /**
@@ -120,48 +120,20 @@ public class CameraActivity extends AppCompatActivity {
                     case CONNECTING:
                         break;
                     case CONNECTED: {
-                        showMessage.showOnUI("Connected to camera!");
                         cameraHandler.startStream(streamDataListener);
-                        cameraButton.setVisibility(View.VISIBLE);
                     }
                     break;
                     case DISCONNECTING:
                         break;
                     case DISCONNECTED: {
-//                        disconnect();
-                        showMessage.showOnUI("Disconnected from camera!");
-                        cameraButton.setVisibility(View.INVISIBLE);
                         endCapture();
+                        finish();
                     }
                     break;
                 }
             });
         }
     };
-
-    /**
-     * Show message on the screen
-     */
-    interface ShowMessage {
-        void show(String message);
-
-        void showOnUI(String message);
-    }
-
-    private MainActivity.ShowMessage showMessage = new MainActivity.ShowMessage() {
-        @Override
-        public void show(String message) {
-            Toast.makeText(CameraActivity.this, message, Toast.LENGTH_SHORT).show();
-            TextView view = findViewById(R.id.textBox);
-            view.setText(view.getText() + "\n" + message);
-        }
-
-        @Override
-        public void showOnUI(String message) {
-            runOnUiThread(() -> show(message));
-        }
-    };
-
 
     /**
      * Event listener for starting or stopping camera capture/recording
@@ -171,22 +143,19 @@ public class CameraActivity extends AppCompatActivity {
     public void toggleCapture(View view) {
         ToggleButton button = (ToggleButton) view;
         if (button.isChecked()) {
-            button.setBackgroundDrawable(getDrawable(R.drawable.ic_camera_capture_recording));
             startCapture();
         } else {
-            button.setBackgroundDrawable(getDrawable(R.drawable.ic_camera_capture_ready));
             endCapture();
         }
     }
 
     private void startCapture() {
+        cameraButton.setBackground(getDrawable(R.drawable.ic_camera_capture_recording));
         imageWriter = new ImageWriter(this);
-        showMessage.showOnUI("Started recording");
-
     }
 
     private void endCapture() {
+        cameraButton.setBackground(getDrawable(R.drawable.ic_camera_capture_ready));
         imageWriter = null;
-        showMessage.showOnUI("Stopped recording");
     }
 }

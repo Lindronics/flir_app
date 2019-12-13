@@ -34,17 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private CameraHandler cameraHandler;
     private Identity connectedIdentity = null;
 
-    private ImageView rgbImage;
-    private ImageView firImage;
-
-    private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
-
     private ListView cameraListView;
     private ArrayList<Identity> foundCameras;
     CameraArrayAdapter cameraArrayAdapter;
-
-    private ImageWriter imageWriter = null;
-
 
     /**
      * Executed when activity is created
@@ -64,9 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
         cameraHandler = new CameraHandler();
 
-        rgbImage = findViewById(R.id.rgb_view);
-        firImage = findViewById(R.id.fir_view);
-
         foundCameras = new ArrayList<>();
         cameraArrayAdapter = new CameraArrayAdapter(this, foundCameras);
         cameraListView = findViewById(R.id.camera_list);
@@ -74,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
 
         startDiscovery();
     }
-
 
     /**
      * Start camera discovery
@@ -115,17 +103,31 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onCameraFound identity:" + identity);
             foundCameras.add(identity);
 
-            // TODO this badly needs fixing...
-            // If in debug mode, connect to emulator
-            if (BuildConfig.DEBUG && cameraHandler.isEmulator(identity)) {
-                connect(identity);
-                showMessage.showOnUI("Connecting to emulator");
+            // Stop discovery when connected
+            stopDiscovery();
+
+            // Already connected
+            if (connectedIdentity != null) {
+                Log.d(TAG, "connect(), already connected to a camera!");
+                showMessage.showOnUI("connect(), already connected to a camera!");
+                return;
             }
-            // Otherwise, connect to camera
-            else if (cameraHandler.isCamera(identity)) {
-                connect(identity);
-                showMessage.showOnUI("Connecting to camera");
+
+            // No camera available
+            if (identity == null) {
+                Log.d(TAG, "connect(), no camera available!");
+                showMessage.showOnUI("connect(), no camera available!");
+                return;
             }
+
+            // If no errors, connect to camera
+            showMessage.showOnUI("connecting to " + identity);
+            connectedIdentity = identity;
+        }
+
+        @Override
+        public void onCameraLost(Identity identity) {
+            foundCameras.remove(identity);
         }
 
         @Override
@@ -135,80 +137,6 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(() ->
                     showMessage.show("onDiscoveryError communicationInterface:" + communicationInterface + " errorCode:" + errorCode)
             );
-        }
-    };
-
-    /**
-     * Connect to a Camera
-     */
-    private void connect(Identity identity) {
-
-        // Stop discovery when connected
-        stopDiscovery();
-
-
-        // Already connected
-        if (connectedIdentity != null) {
-            Log.d(TAG, "connect(), already connected to a camera!");
-            showMessage.showOnUI("connect(), already connected to a camera!");
-            return;
-        }
-
-        // No camera available
-        if (identity == null) {
-            Log.d(TAG, "connect(), no camera available!");
-            showMessage.showOnUI("connect(), no camera available!");
-            return;
-        }
-
-        // If no errors, connect to camera
-        showMessage.showOnUI("connecting to " + identity);
-        connectedIdentity = identity;
-        cameraHandler.connect(identity, connectionStatusListener);
-    }
-
-    /**
-     * Disconnect from a camera
-     */
-    private void disconnect() {
-        Log.d(TAG, "disconnect() called with: connectedIdentity = [" + connectedIdentity + "]");
-        connectedIdentity = null;
-        cameraHandler.disconnect();
-
-        // Start discovery when disconnected
-        startDiscovery();
-    }
-
-    /**
-     * Defines behaviour vor changes of the connection status
-     */
-    private final ConnectionStatusListener connectionStatusListener = new ConnectionStatusListener() {
-        @Override
-        public void onConnectionStatusChanged(@NotNull ConnectionStatus connectionStatus, @org.jetbrains.annotations.Nullable ErrorCode errorCode) {
-            Log.d(TAG, "onConnectionStatusChanged connectionStatus:" + connectionStatus + " errorCode:" + errorCode);
-
-            runOnUiThread(() -> {
-
-                switch (connectionStatus) {
-                    case CONNECTING:
-                        break;
-                    case CONNECTED: {
-                        showMessage.showOnUI("Connected to camera!");
-//                        cameraHandler.startStream(streamDataListener);
-//                        cameraButton.setVisibility(View.VISIBLE);
-                    }
-                    break;
-                    case DISCONNECTING:
-                        break;
-                    case DISCONNECTED: {
-                        disconnect();
-                        showMessage.showOnUI("Disconnected from camera!");
-//                        cameraButton.setVisibility(View.INVISIBLE);
-//                        endCapture();
-                    }
-                    break;
-                }
-            });
         }
     };
 
