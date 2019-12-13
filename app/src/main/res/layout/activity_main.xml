@@ -53,7 +53,8 @@
             android:layout_gravity="center_horizontal"
             android:text="Record"
             android:onClick="toggleCapture"
-            android:visibility="invisible"/>
+            android:visibility="invisible"
+            android:background="@drawable/ic_camera_capture_ready"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

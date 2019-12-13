@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" xmlns:aapt="http://schemas.android.com/aapt"
+    android:viewportWidth="200"
+    android:viewportHeight="200"
+    android:width="200dp"
+    android:height="200dp">
+    <path
+        android:pathData="M97.0529 +0L102.947 +0C156.548 +0 +200 +44.7714 +200 +99.9998L200 +99.9998C200 +155.228 +156.548 +200 +102.947 +200L97.0529 +200C43.4519 +200 +0 +155.228 +0 +99.9998L0 +99.9998C0 +44.7714 +43.4519 +0 +97.0529 +0Z"
+        android:fillType="evenOdd"
+        android:fillColor="#FF0000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M97.7897 +25L102.21 +25C142.411 +25 +175 +58.5786 +175 +99.9999L175 +99.9999C175 +141.421 +142.411 +175 +102.21 +175L97.7897 +175C57.5889 +175 +25 +141.421 +25 +99.9999L25 +99.9999C25 +58.5786 +57.5889 +25 +97.7897 +25Z"
+        android:fillType="evenOdd"
+        android:fillColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M98.5265 +50L101.473 +50C128.274 +50 +150 +72.3857 +150 +99.9999L150 +99.9999C150 +127.614 +128.274 +150 +101.473 +150L98.5265 +150C71.7259 +150 +50 +127.614 +50 +99.9999L50 +99.9999C50 +72.3857 +71.7259 +50 +98.5265 +50Z"
+        android:fillType="evenOdd"
+        android:fillColor="#FF0000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
