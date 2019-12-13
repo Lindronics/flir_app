@@ -1,4 +1,4 @@
-package com.example.flirapp;
+package com.lindronics.flirapp;
 
 import org.junit.Test;
 

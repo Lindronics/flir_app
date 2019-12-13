@@ -1,4 +1,4 @@
-package com.example.flirapp;
+package com.lindronics.flirapp;
 
 import android.graphics.Bitmap;
 import android.util.Log;
