@@ -43,4 +43,6 @@ dependencies {
     implementation 'org.jetbrains:annotations:15.0'
     implementation 'com.google.code.gson:gson:2.8.5'
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
+    implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly'
 }

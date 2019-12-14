@@ -32,6 +32,8 @@ public class ClassifierActivity extends AppCompatActivity {
 
     private ImageWriter imageWriter = null;
 
+    ModelHandler modelHandler;
+
 
     /**
      * Executed when activity is created.
@@ -60,6 +62,7 @@ public class ClassifierActivity extends AppCompatActivity {
         Identity cameraIdentity = gson.fromJson(identityString, Identity.class);
         cameraHandler.connect(cameraIdentity, connectionStatusListener);
 
+        modelHandler = new ModelHandler(this, ModelHandler.Device.GPU, 1);
     }
 
     /**
