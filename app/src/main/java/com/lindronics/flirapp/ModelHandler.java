@@ -4,11 +4,22 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.SystemClock;
 import android.os.Trace;
+import android.util.Log;
 
+import org.bytedeco.javacpp.Loader;
+import org.bytedeco.opencv.opencv_java;
+import org.datavec.image.loader.NativeImageLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
+
 import org.nd4j.linalg.factory.Nd4j;
+import org.opencv.android.Utils;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
+import org.tensorflow.lite.Tensor;
 import org.tensorflow.lite.gpu.GpuDelegate;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.common.FileUtil;
@@ -23,7 +34,12 @@ import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -104,6 +120,13 @@ public class ModelHandler {
 
     public ModelHandler(Activity activity, Device device, int numThreads) throws IOException {
 
+//        if (!OpenCVLoader.initDebug()) {
+//            Log.e(">>>", "OpenCV not initialized!");
+//        }
+        Loader.load(opencv_java.class);
+
+
+
         tfliteModel = FileUtil.loadMappedFile(activity, "model.tflite");
 
         // Select device
@@ -159,7 +182,20 @@ public class ModelHandler {
 
 
 //        inputImageBuffer = loadImage(bitmap, sensorOrientation);
-        int[] inputImageBuffer = loadImage(rgb, fir, sensorOrientation);
+        float[] inputImageBuffer = null;
+        try {
+            inputImageBuffer = loadImage(rgb, fir, sensorOrientation);
+        } catch (IOException e) {
+            return null;
+        }
+
+        byte[] i = new byte[inputImageBuffer.length];
+
+        ByteBuffer buffer = ByteBuffer.wrap(i);
+        FloatBuffer fb = buffer.asFloatBuffer();
+
+        float[] floatArray = new float[fb.limit()];
+        fb.get(floatArray);
 
 
         long endTimeForLoadImage = SystemClock.uptimeMillis();
@@ -169,7 +205,8 @@ public class ModelHandler {
         Trace.beginSection("runInference");
 //        long startTimeForReference = SystemClock.uptimeMillis();
 //        tflite.run(inputImageBuffer.getBuffer(), outputProbabilityBuffer.getBuffer().rewind());
-        tflite.run(inputImageBuffer, outputProbabilityBuffer.getBuffer().rewind());
+
+        tflite.run(fb, outputProbabilityBuffer.getBuffer().rewind());
 
 //        long endTimeForReference = SystemClock.uptimeMillis();
         Trace.endSection();
@@ -184,23 +221,52 @@ public class ModelHandler {
         return getTopKProbability(labeledProbability);
     }
 
-
     /**
      * Loads input image, and applies pre-processing.
      */
-    private int[] loadImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) {
+    private float[] loadImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) throws IOException {
 
-        int[] rgbArray = new int[rgb.getWidth() * rgb.getHeight() * 3];
-        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
-        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
-        INDArray rgbNdArray = Nd4j.create(rgbArray, shape);
 
-        int[] firArray = new int[fir.getWidth() * fir.getHeight() * 3];
-        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
-        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
-        INDArray rgbNdArray = Nd4j.create(rgbArray, shape);
+//        int[] rgbArray = new int[rgb.getWidth() * rgb.getHeight() * 3];
+//        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
+//        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
+//        Mat test = converter.convert(rgbArray);
+//
+//        int[] firArray = new int[fir.getWidth() * fir.getHeight() * 3];
+//        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
+//        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
 
-        return rgbArray;
+        Log.i(">>>>>>>TAG", "GOT HERE" );
+
+        Mat rgbArray = new Mat(rgb.getWidth(), rgb.getHeight(), CvType.CV_32F);
+        Utils.bitmapToMat(rgb, rgbArray);
+
+        Mat firArray = new Mat();
+        Utils.bitmapToMat(fir, firArray);
+
+        Imgproc.resize(rgbArray, rgbArray, firArray.size());
+
+//        ArrayList<Mat> channels = new ArrayList<>();
+//        channels.add(rgbArray);
+//        channels.add(firArray);
+        Log.i(">>>>>>>TAG", "SHAPE: " + firArray.size() + ", " + rgbArray.size());
+        Log.i(">>>>>>>TAG", "CHANS: " + firArray.channels() + ", " + rgbArray.channels());
+
+        NativeImageLoader loader = new NativeImageLoader();
+
+        INDArray rgbImage = loader.asMatrix(rgbArray);
+        INDArray firImage = loader.asMatrix(rgbArray);
+
+        INDArray firImageMean = firImage.mean(2);
+
+        INDArray stackedImage = Nd4j.stack(2, rgbImage, firImage);
+        stackedImage = stackedImage.divi(255);
+
+        float[] result = stackedImage.data().asFloat();
+
+//        Core.merge(channels, )
+
+        return result;
 //        // Loads bitmap into a TensorImage.
 //        inputImageBuffer.load(bitmap);
 //        inputImageBuffer.load(bitmap);
