@@ -16,6 +16,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
@@ -244,7 +245,14 @@ public class ModelHandler {
         Mat firArray = new Mat();
         Utils.bitmapToMat(fir, firArray);
 
-        Imgproc.resize(rgbArray, rgbArray, firArray.size());
+        int a = firArray.width();
+        int b = firArray.height();
+        int c = firArray.width();
+        int d = firArray.height();
+
+//        Imgproc.resize(rgbArray, rgbArray, firArray.size());
+        Imgproc.resize(rgbArray, rgbArray, new Size(480, 320));
+        Imgproc.resize(firArray, firArray, new Size(480, 320));
 
 //        ArrayList<Mat> channels = new ArrayList<>();
 //        channels.add(rgbArray);
@@ -257,13 +265,18 @@ public class ModelHandler {
         INDArray rgbImage = loader.asMatrix(rgbArray);
         INDArray firImage = loader.asMatrix(rgbArray);
 
-        INDArray firImageMean = firImage.mean(2);
+        INDArray firImageMean = firImage.mean(1);
 
-        INDArray stackedImage = Nd4j.stack(2, rgbImage, firImage);
+        long[] e = firImageMean.shape();
+        long[] f = rgbImage.shape();
+
+        INDArray stackedImage = Nd4j.stack(1, rgbImage, firImage);
         stackedImage = stackedImage.divi(255);
 
-        float[] result = stackedImage.data().asFloat();
+        long[] g = rgbImage.shape();
 
+        float[] result = stackedImage.data().asFloat();
+        int h = result.length;
 //        Core.merge(channels, )
 
         return result;

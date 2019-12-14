@@ -152,13 +152,9 @@ public class ClassifierActivity extends AppCompatActivity {
 //                    lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 //                    LOGGER.v("Detect: %s", results);
 
-                    runOnUiThread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                showResultsInBottomSheet(results);
-                            }
-                        });
+                    runOnUiThread(() -> {
+                        showResultsInBottomSheet(results);
+                    });
                 }
 //                readyForNextImage();
             });
@@ -168,15 +164,10 @@ public class ClassifierActivity extends AppCompatActivity {
 
     @UiThread
     protected void showResultsInBottomSheet(List<ModelHandler.Recognition> results) {
-        if (results != null && results.size() >= 3) {
+        if (results != null && results.size() >= 1) {
             ModelHandler.Recognition recognition = results.get(0);
             if (recognition != null) {
-                if (recognition.getTitle() != null) {
-                    predictionsBox.setText(recognition.getTitle());
-                }
-                if (recognition.getConfidence() != null) {
-                    predictionsBox.setText(String.format("%.2f", (100 * recognition.getConfidence())) + "%");
-                }
+                    predictionsBox.setText(recognition.getTitle() + String.format(" %.2f", (100 * recognition.getConfidence())) + "%");
             }
 
 //            Recognition recognition1 = results.get(1);
