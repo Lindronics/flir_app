@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.os.SystemClock;
 import android.os.Trace;
 
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.factory.Nd4j;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.GpuDelegate;
@@ -100,76 +102,77 @@ public class ModelHandler {
         GPU
     }
 
-    public ModelHandler(Activity activity, Device device, int numThreads) {
-        try {
-            tfliteModel = FileUtil.loadMappedFile(activity, "model.tflite");
+    public ModelHandler(Activity activity, Device device, int numThreads) throws IOException {
 
-            // Select device
-            switch (device) {
-                case NNAPI:
-                    nnApiDelegate = new NnApiDelegate();
-                    tfliteOptions.addDelegate(nnApiDelegate);
-                    break;
-                case GPU:
-                    gpuDelegate = new GpuDelegate();
-                    tfliteOptions.addDelegate(gpuDelegate);
-                    break;
-                case CPU:
-                    break;
-            }
-            tfliteOptions.setNumThreads(numThreads);
-            tflite = new Interpreter(tfliteModel, tfliteOptions);
+        tfliteModel = FileUtil.loadMappedFile(activity, "model.tflite");
 
-            // Loads labels out from the label file.
-            labels = FileUtil.loadLabels(activity, "labels.txt");
-
-            // Reads type and shape of input and output tensors, respectively.
-            int imageTensorIndex = 0;
-            int[] imageShape = tflite.getInputTensor(imageTensorIndex).shape();
-            imageSizeY = imageShape[1];
-            imageSizeX = imageShape[2];
-            DataType imageDataType = tflite.getInputTensor(imageTensorIndex).dataType();
-            int probabilityTensorIndex = 0;
-            int[] probabilityShape =
-                    tflite.getOutputTensor(probabilityTensorIndex).shape();
-            DataType probabilityDataType = tflite.getOutputTensor(probabilityTensorIndex).dataType();
-
-            // Creates the input tensor.
-            inputImageBuffer = new TensorImage(imageDataType);
-
-            // Creates the output tensor and its processor.
-            outputProbabilityBuffer = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
-
-            // Creates the post processor for the output probability.
-            probabilityProcessor = new TensorProcessor.Builder().add(new NormalizeOp(0.0f, 1.0f)).build();
-
-        } catch (IOException e) {
-            e.printStackTrace();
+        // Select device
+        switch (device) {
+            case NNAPI:
+                nnApiDelegate = new NnApiDelegate();
+                tfliteOptions.addDelegate(nnApiDelegate);
+                break;
+            case GPU:
+                gpuDelegate = new GpuDelegate();
+                tfliteOptions.addDelegate(gpuDelegate);
+                break;
+            case CPU:
+                break;
         }
+        tfliteOptions.setNumThreads(numThreads);
+        tflite = new Interpreter(tfliteModel, tfliteOptions);
+
+        // Loads labels out from the label file.
+        labels = FileUtil.loadLabels(activity, "labels.txt");
+
+        // Reads type and shape of input and output tensors, respectively.
+        int imageTensorIndex = 0;
+        int[] imageShape = tflite.getInputTensor(imageTensorIndex).shape();
+        imageSizeY = imageShape[1];
+        imageSizeX = imageShape[2];
+        DataType imageDataType = tflite.getInputTensor(imageTensorIndex).dataType();
+        int probabilityTensorIndex = 0;
+        int[] probabilityShape =
+                tflite.getOutputTensor(probabilityTensorIndex).shape();
+        DataType probabilityDataType = tflite.getOutputTensor(probabilityTensorIndex).dataType();
+
+        // Creates the input tensor.
+        inputImageBuffer = new TensorImage(imageDataType);
+
+        // Creates the output tensor and its processor.
+        outputProbabilityBuffer = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
+
+        // Creates the post processor for the output probability.
+        probabilityProcessor = new TensorProcessor.Builder().add(new NormalizeOp(0.0f, 1.0f)).build();
+
     }
 
 
     /**
      * Runs inference and returns the classification results.
      */
-    public List<Recognition> recognizeImage(final Bitmap bitmap, int sensorOrientation) {
-        // Logs this method so that it can be analyzed with systrace.
+    public List<Recognition> recognizeImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) {
         Trace.beginSection("recognizeImage");
 
         Trace.beginSection("loadImage");
         long startTimeForLoadImage = SystemClock.uptimeMillis();
-        inputImageBuffer = loadImage(bitmap, sensorOrientation);
+
+
+//        inputImageBuffer = loadImage(bitmap, sensorOrientation);
+        int[] inputImageBuffer = loadImage(rgb, fir, sensorOrientation);
+
+
         long endTimeForLoadImage = SystemClock.uptimeMillis();
         Trace.endSection();
-//        LOGGER.v("Time cost to load the image: " + (endTimeForLoadImage - startTimeForLoadImage));
 
         // Runs the inference call.
         Trace.beginSection("runInference");
-        long startTimeForReference = SystemClock.uptimeMillis();
-        tflite.run(inputImageBuffer.getBuffer(), outputProbabilityBuffer.getBuffer().rewind());
-        long endTimeForReference = SystemClock.uptimeMillis();
+//        long startTimeForReference = SystemClock.uptimeMillis();
+//        tflite.run(inputImageBuffer.getBuffer(), outputProbabilityBuffer.getBuffer().rewind());
+        tflite.run(inputImageBuffer, outputProbabilityBuffer.getBuffer().rewind());
+
+//        long endTimeForReference = SystemClock.uptimeMillis();
         Trace.endSection();
-//        LOGGER.v("Timecost to run model inference: " + (endTimeForReference - startTimeForReference));
 
         // Gets the map of label and probability.
         Map<String, Float> labeledProbability =
@@ -185,22 +188,36 @@ public class ModelHandler {
     /**
      * Loads input image, and applies pre-processing.
      */
-    private TensorImage loadImage(final Bitmap bitmap, int sensorOrientation) {
+    private int[] loadImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) {
 
-        // Loads bitmap into a TensorImage.
-        inputImageBuffer.load(bitmap);
+        int[] rgbArray = new int[rgb.getWidth() * rgb.getHeight() * 3];
+        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
+        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
+        INDArray rgbNdArray = Nd4j.create(rgbArray, shape);
 
-        // Creates processor for the TensorImage.
-        int cropSize = Math.min(bitmap.getWidth(), bitmap.getHeight());
-        int numRoration = sensorOrientation / 90;
+        int[] firArray = new int[fir.getWidth() * fir.getHeight() * 3];
+        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
+        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
+        INDArray rgbNdArray = Nd4j.create(rgbArray, shape);
 
-        ImageProcessor imageProcessor =
-            new ImageProcessor.Builder()
-                .add(new ResizeWithCropOrPadOp(cropSize, cropSize))
-                .add(new ResizeOp(imageSizeX, imageSizeY, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
-                .add(new Rot90Op(numRoration))
-                .build();
-        return imageProcessor.process(inputImageBuffer);
+        return rgbArray;
+//        // Loads bitmap into a TensorImage.
+//        inputImageBuffer.load(bitmap);
+//        inputImageBuffer.load(bitmap);
+//
+//
+//
+//        // Creates processor for the TensorImage.
+//        int cropSize = Math.min(bitmap.getWidth(), bitmap.getHeight());
+//        int numRoration = sensorOrientation / 90;
+//
+//        ImageProcessor imageProcessor =
+//            new ImageProcessor.Builder()
+//                .add(new ResizeWithCropOrPadOp(cropSize, cropSize))
+//                .add(new ResizeOp(imageSizeX, imageSizeY, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
+//                .add(new Rot90Op(numRoration))
+//                .build();
+//        return imageProcessor.process(inputImageBuffer);
     }
 
     /**
@@ -228,6 +245,23 @@ public class ModelHandler {
             recognitions.add(pq.poll());
         }
         return recognitions;
+    }
+
+    /** Closes the interpreter and model to release resources. */
+    public void close() {
+        if (tflite != null) {
+            tflite.close();
+            tflite = null;
+        }
+        if (gpuDelegate != null) {
+            gpuDelegate.close();
+            gpuDelegate = null;
+        }
+        if (nnApiDelegate != null) {
+            nnApiDelegate.close();
+            nnApiDelegate = null;
+        }
+        tfliteModel = null;
     }
 
 
