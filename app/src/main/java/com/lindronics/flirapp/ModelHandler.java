@@ -2,6 +2,7 @@ package com.lindronics.flirapp;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Trace;
 
 import androidx.annotation.NonNull;
@@ -174,37 +175,79 @@ class ModelHandler {
         return getTopKProbability(labeledProbability);
     }
 
+//    /**
+//     * Loads input image, and applies pre-processing.
+//     */
+//    private FloatBuffer loadImage(final Bitmap rgb, final Bitmap fir) throws IOException {
+//
+//        // Convert to OpenCV Mat and resize to required input size
+//        Mat rgbMat = new Mat(rgb.getWidth(), rgb.getHeight(), CvType.CV_32F);
+//        Utils.bitmapToMat(rgb, rgbMat);
+//
+//        Mat firMat = new Mat();
+//        Utils.bitmapToMat(fir, firMat);
+//
+//        Imgproc.resize(rgbMat, rgbMat, new Size(imageWidth, imageHeight));
+//        Imgproc.resize(firMat, firMat, new Size(imageWidth, imageHeight));
+//
+//        // Convert to NdArray
+//        NativeImageLoader loader = new NativeImageLoader(imageHeight, imageWidth, 3);
+//
+//        INDArray rgbArray = loader.asMatrix(rgbMat);
+//        INDArray firArray = loader.asMatrix(rgbMat);
+//
+//        // Collapse FIR to 1 channel, stack FIR and RGB together
+//        INDArray firImageMean = firArray.mean(1);
+//        firImageMean = Nd4j.expandDims(firImageMean, 0);
+//
+//        INDArray stackedImage = Nd4j.concat(1, rgbArray, firImageMean);
+//        stackedImage = stackedImage.divi(255);
+//
+//        stackedImage = stackedImage.permute(0, 2, 3, 1);
+//
+//        return stackedImage.data().asNio().asFloatBuffer();
+//    }
+
     /**
      * Loads input image, and applies pre-processing.
      */
-    private FloatBuffer loadImage(final Bitmap rgb, final Bitmap fir) throws IOException {
+    private FloatBuffer loadImage(final Bitmap rgbBitmap, final Bitmap firBitmap) throws IOException {
 
-        // Convert to OpenCV Mat and resize to required input size
-        Mat rgbMat = new Mat(rgb.getWidth(), rgb.getHeight(), CvType.CV_32F);
-        Utils.bitmapToMat(rgb, rgbMat);
+        Bitmap rgbRescaled = Bitmap.createScaledBitmap(rgbBitmap, imageWidth, imageHeight, true);
+        Bitmap firRescaled = Bitmap.createScaledBitmap(firBitmap, imageWidth, imageHeight, true);
 
-        Mat firMat = new Mat();
-        Utils.bitmapToMat(fir, firMat);
+        int[] rgbArray = new int[imageWidth * imageHeight];
+        rgbRescaled.getPixels(rgbArray, 0, imageWidth, 0, 0, imageWidth, imageHeight);
 
-        Imgproc.resize(rgbMat, rgbMat, new Size(imageWidth, imageHeight));
-        Imgproc.resize(firMat, firMat, new Size(imageWidth, imageHeight));
+        int[] firArray = new int[imageWidth * imageHeight];
+        firRescaled.getPixels(firArray, 0, imageWidth, 0, 0, imageWidth, imageHeight);
 
-        // Convert to NdArray
-        NativeImageLoader loader = new NativeImageLoader(imageHeight, imageWidth, 3);
+        int a = rgbArray.length;
 
-        INDArray rgbArray = loader.asMatrix(rgbMat);
-        INDArray firArray = loader.asMatrix(rgbMat);
+        float[] mergedArray = new float[imageWidth * imageHeight * 4];
 
-        // Collapse FIR to 1 channel, stack FIR and RGB together
-        INDArray firImageMean = firArray.mean(1);
-        firImageMean = Nd4j.expandDims(firImageMean, 0);
+        for (int i = 0; i < imageWidth; i++) {
+            for (int j = 0; j < imageHeight; j++) {
+                Color rgbColor = Color.valueOf(rgbArray[imageHeight * i + j]);
+                Color firColor = Color.valueOf(firArray[imageHeight * i + j]);
 
-        INDArray stackedImage = Nd4j.concat(1, rgbArray, firImageMean);
-        stackedImage = stackedImage.divi(255);
+                float r = rgbColor.red();
+                float g = rgbColor.green();
+                float b = rgbColor.blue();
 
-        stackedImage = stackedImage.permute(0, 2, 3, 1);
+                float t = (firColor.red() + firColor.green() + firColor.blue()) / 3;
 
-        return stackedImage.data().asNio().asFloatBuffer();
+                mergedArray[imageHeight * i + 4 * j] = r;
+                mergedArray[imageHeight * i + 4 * j + 1] = g;
+                mergedArray[imageHeight * i + 4 * j + 2] = b;
+                mergedArray[imageHeight * i + 4 * j + 3] = t;
+
+                int x = 1;
+            }
+        }
+        int b = mergedArray.length;
+
+        return FloatBuffer.wrap(mergedArray);
     }
 
     /**

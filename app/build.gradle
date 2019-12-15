@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.example.flirapp"
-        minSdkVersion 21
+        minSdkVersion 26
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -49,12 +49,6 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
     implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
     implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly'
-//    implementation 'com.quickbirdstudios:opencv:4.1.0-contrib'
-//    implementation 'org.bytedeco:javacv-platform:1.5.2'
-//    implementation 'org.bytedeco:opencv:4.1.2-1.5.2'
-    implementation ("org.deeplearning4j:deeplearning4j-core:1.0.0-beta4") {
-//        exclude module: 'opencv-platform'
-    }
+    implementation "org.deeplearning4j:deeplearning4j-core:1.0.0-beta4"
     implementation "org.nd4j:nd4j-native-platform:1.0.0-beta4"
-
 }
