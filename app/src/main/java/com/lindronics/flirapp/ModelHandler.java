@@ -7,16 +7,6 @@ import android.os.Trace;
 
 import androidx.annotation.NonNull;
 
-import org.bytedeco.javacpp.Loader;
-import org.bytedeco.opencv.opencv_java;
-import org.datavec.image.loader.NativeImageLoader;
-import org.nd4j.linalg.api.ndarray.INDArray;
-import org.nd4j.linalg.factory.Nd4j;
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.GpuDelegate;
@@ -28,7 +18,6 @@ import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.IOException;
-import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,9 +88,6 @@ class ModelHandler {
 
     ModelHandler(Activity activity, Device device, int numThreads) throws IOException {
 
-        // Initialize OpenCV
-        Loader.load(opencv_java.class);
-
         // Load model
         tfliteModel = FileUtil.loadMappedFile(activity, "model.tflite");
 
@@ -128,8 +114,8 @@ class ModelHandler {
         // Read type and shape of input and output tensors, respectively.
         int imageTensorIndex = 0;
         int[] imageShape = tflite.getInputTensor(imageTensorIndex).shape();
-        imageWidth = imageShape[1];
-        imageHeight = imageShape[2];
+        imageHeight = imageShape[1];
+        imageWidth = imageShape[2];
 
         int probabilityTensorIndex = 0;
         int[] probabilityShape =
@@ -152,12 +138,7 @@ class ModelHandler {
 
         // Load images
         Trace.beginSection("loadImage");
-        FloatBuffer inputImageBuffer;
-        try {
-            inputImageBuffer = loadImage(rgb, fir);
-        } catch (IOException e) {
-            return null;
-        }
+        float[][][][] inputImageBuffer = loadImage(rgb, fir);
         Trace.endSection();
 
         // Runs the inference call.
@@ -167,52 +148,20 @@ class ModelHandler {
 
         // Gets the map of label and probability.
         Map<String, Float> labeledProbability =
-            new TensorLabel(labels, probabilityProcessor.process(outputProbabilityBuffer))
-                .getMapWithFloatValue();
+                new TensorLabel(labels, probabilityProcessor.process(outputProbabilityBuffer))
+                        .getMapWithFloatValue();
         Trace.endSection();
 
         // Gets top-k results.
         return getTopKProbability(labeledProbability);
     }
 
-//    /**
-//     * Loads input image, and applies pre-processing.
-//     */
-//    private FloatBuffer loadImage(final Bitmap rgb, final Bitmap fir) throws IOException {
-//
-//        // Convert to OpenCV Mat and resize to required input size
-//        Mat rgbMat = new Mat(rgb.getWidth(), rgb.getHeight(), CvType.CV_32F);
-//        Utils.bitmapToMat(rgb, rgbMat);
-//
-//        Mat firMat = new Mat();
-//        Utils.bitmapToMat(fir, firMat);
-//
-//        Imgproc.resize(rgbMat, rgbMat, new Size(imageWidth, imageHeight));
-//        Imgproc.resize(firMat, firMat, new Size(imageWidth, imageHeight));
-//
-//        // Convert to NdArray
-//        NativeImageLoader loader = new NativeImageLoader(imageHeight, imageWidth, 3);
-//
-//        INDArray rgbArray = loader.asMatrix(rgbMat);
-//        INDArray firArray = loader.asMatrix(rgbMat);
-//
-//        // Collapse FIR to 1 channel, stack FIR and RGB together
-//        INDArray firImageMean = firArray.mean(1);
-//        firImageMean = Nd4j.expandDims(firImageMean, 0);
-//
-//        INDArray stackedImage = Nd4j.concat(1, rgbArray, firImageMean);
-//        stackedImage = stackedImage.divi(255);
-//
-//        stackedImage = stackedImage.permute(0, 2, 3, 1);
-//
-//        return stackedImage.data().asNio().asFloatBuffer();
-//    }
-
     /**
      * Loads input image, and applies pre-processing.
      */
-    private FloatBuffer loadImage(final Bitmap rgbBitmap, final Bitmap firBitmap) throws IOException {
+    private float[][][][] loadImage(final Bitmap rgbBitmap, final Bitmap firBitmap) {
 
+        // Rescale to expected dimensions
         Bitmap rgbRescaled = Bitmap.createScaledBitmap(rgbBitmap, imageWidth, imageHeight, true);
         Bitmap firRescaled = Bitmap.createScaledBitmap(firBitmap, imageWidth, imageHeight, true);
 
@@ -222,32 +171,22 @@ class ModelHandler {
         int[] firArray = new int[imageWidth * imageHeight];
         firRescaled.getPixels(firArray, 0, imageWidth, 0, 0, imageWidth, imageHeight);
 
-        int a = rgbArray.length;
+        // Batch size * height * width * 4 channels
+        float[][][][] mergedArray = new float[1][imageHeight][imageWidth][4];
 
-        float[] mergedArray = new float[imageWidth * imageHeight * 4];
-
+        // Extract RGB and thermal channels and combine into new array
         for (int i = 0; i < imageWidth; i++) {
             for (int j = 0; j < imageHeight; j++) {
                 Color rgbColor = Color.valueOf(rgbArray[imageHeight * i + j]);
                 Color firColor = Color.valueOf(firArray[imageHeight * i + j]);
 
-                float r = rgbColor.red();
-                float g = rgbColor.green();
-                float b = rgbColor.blue();
-
-                float t = (firColor.red() + firColor.green() + firColor.blue()) / 3;
-
-                mergedArray[imageHeight * i + 4 * j] = r;
-                mergedArray[imageHeight * i + 4 * j + 1] = g;
-                mergedArray[imageHeight * i + 4 * j + 2] = b;
-                mergedArray[imageHeight * i + 4 * j + 3] = t;
-
-                int x = 1;
+                mergedArray[0][j][i][0] = rgbColor.red();
+                mergedArray[0][j][i][1] = rgbColor.green();
+                mergedArray[0][j][i][2] = rgbColor.blue();
+                mergedArray[0][j][i][3] = (firColor.red() + firColor.green() + firColor.blue()) / 3;
             }
         }
-        int b = mergedArray.length;
-
-        return FloatBuffer.wrap(mergedArray);
+        return mergedArray;
     }
 
     /**
@@ -256,11 +195,11 @@ class ModelHandler {
     private static List<Recognition> getTopKProbability(Map<String, Float> labelProb) {
         // Find the best classifications.
         PriorityQueue<Recognition> pq = new PriorityQueue<>(
-            MAX_RESULTS,
-            (lhs, rhs) -> {
-                // Intentionally reversed to put high confidence at the head of the queue.
-                return Float.compare(rhs.getConfidence(), lhs.getConfidence());
-            });
+                MAX_RESULTS,
+                (lhs, rhs) -> {
+                    // Intentionally reversed to put high confidence at the head of the queue.
+                    return Float.compare(rhs.getConfidence(), lhs.getConfidence());
+                });
 
         for (Map.Entry<String, Float> entry : labelProb.entrySet()) {
             pq.add(new Recognition("" + entry.getKey(), entry.getKey(), entry.getValue()));

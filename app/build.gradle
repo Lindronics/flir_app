@@ -49,6 +49,4 @@ dependencies {
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
     implementation 'org.tensorflow:tensorflow-lite-gpu:0.0.0-nightly'
     implementation 'org.tensorflow:tensorflow-lite-support:0.0.0-nightly'
-    implementation "org.deeplearning4j:deeplearning4j-core:1.0.0-beta4"
-    implementation "org.nd4j:nd4j-native-platform:1.0.0-beta4"
 }

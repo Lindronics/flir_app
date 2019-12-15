@@ -4,6 +4,8 @@
       <w>dcim</w>
       <w>flir</w>
       <w>flirapp</w>
+      <w>nnapi</w>
+      <w>tflite</w>
     </words>
   </dictionary>
 </component>
