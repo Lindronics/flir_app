@@ -2,63 +2,45 @@ package com.lindronics.flirapp;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.os.SystemClock;
 import android.os.Trace;
-import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.opencv.opencv_java;
 import org.datavec.image.loader.NativeImageLoader;
 import org.nd4j.linalg.api.ndarray.INDArray;
-
 import org.nd4j.linalg.factory.Nd4j;
 import org.opencv.android.Utils;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.Tensor;
 import org.tensorflow.lite.gpu.GpuDelegate;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.common.FileUtil;
 import org.tensorflow.lite.support.common.TensorProcessor;
 import org.tensorflow.lite.support.common.ops.NormalizeOp;
-import org.tensorflow.lite.support.image.ImageProcessor;
-import org.tensorflow.lite.support.image.TensorImage;
-import org.tensorflow.lite.support.image.ops.ResizeOp;
-import org.tensorflow.lite.support.image.ops.ResizeWithCropOrPadOp;
-import org.tensorflow.lite.support.image.ops.Rot90Op;
 import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-public class ModelHandler {
+class ModelHandler {
 
     /**
      * Interpreter for inference
      */
     private Interpreter tflite;
-
-    /**
-     * Options for configuring the Interpreter.
-     */
-    private final Interpreter.Options tfliteOptions = new Interpreter.Options();
 
     /**
      * Loaded TF model
@@ -81,11 +63,6 @@ public class ModelHandler {
     private NnApiDelegate nnApiDelegate = null;
 
     /**
-     * Input image TensorBuffer.
-     */
-    private TensorImage inputImageBuffer;
-
-    /**
      * Output probability TensorBuffer.
      */
     private TensorBuffer outputProbabilityBuffer;
@@ -98,12 +75,12 @@ public class ModelHandler {
     /**
      * Image size along the x axis.
      */
-    private int imageSizeX;
+    private int imageHeight;
 
     /**
      * Image size along the y axis.
      */
-    private int imageSizeY;
+    private int imageWidth;
 
     /**
      * Number of results to show in the UI.
@@ -119,18 +96,16 @@ public class ModelHandler {
         GPU
     }
 
-    public ModelHandler(Activity activity, Device device, int numThreads) throws IOException {
+    ModelHandler(Activity activity, Device device, int numThreads) throws IOException {
 
-//        if (!OpenCVLoader.initDebug()) {
-//            Log.e(">>>", "OpenCV not initialized!");
-//        }
+        // Initialize OpenCV
         Loader.load(opencv_java.class);
 
-
-
+        // Load model
         tfliteModel = FileUtil.loadMappedFile(activity, "model.tflite");
 
         // Select device
+        Interpreter.Options tfliteOptions = new Interpreter.Options();
         switch (device) {
             case NNAPI:
                 nnApiDelegate = new NnApiDelegate();
@@ -146,70 +121,47 @@ public class ModelHandler {
         tfliteOptions.setNumThreads(numThreads);
         tflite = new Interpreter(tfliteModel, tfliteOptions);
 
-        // Loads labels out from the label file.
+        // Load labels out from the label file.
         labels = FileUtil.loadLabels(activity, "labels.txt");
 
-        // Reads type and shape of input and output tensors, respectively.
+        // Read type and shape of input and output tensors, respectively.
         int imageTensorIndex = 0;
         int[] imageShape = tflite.getInputTensor(imageTensorIndex).shape();
-        imageSizeY = imageShape[1];
-        imageSizeX = imageShape[2];
-        DataType imageDataType = tflite.getInputTensor(imageTensorIndex).dataType();
+        imageWidth = imageShape[1];
+        imageHeight = imageShape[2];
+
         int probabilityTensorIndex = 0;
         int[] probabilityShape =
                 tflite.getOutputTensor(probabilityTensorIndex).shape();
         DataType probabilityDataType = tflite.getOutputTensor(probabilityTensorIndex).dataType();
 
-        // Creates the input tensor.
-        inputImageBuffer = new TensorImage(imageDataType);
-
-        // Creates the output tensor and its processor.
+        // Create the output tensor and its processor.
         outputProbabilityBuffer = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
 
-        // Creates the post processor for the output probability.
+        // Create the post processor for the output probability.
         probabilityProcessor = new TensorProcessor.Builder().add(new NormalizeOp(0.0f, 1.0f)).build();
-
     }
 
 
     /**
      * Runs inference and returns the classification results.
      */
-    public List<Recognition> recognizeImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) {
+    List<Recognition> recognizeImage(final Bitmap rgb, final Bitmap fir) {
         Trace.beginSection("recognizeImage");
 
+        // Load images
         Trace.beginSection("loadImage");
-//        long startTimeForLoadImage = SystemClock.uptimeMillis();
-
-
-//        inputImageBuffer = loadImage(bitmap, sensorOrientation);
-        FloatBuffer inputImageBuffer = null;
+        FloatBuffer inputImageBuffer;
         try {
-            inputImageBuffer = loadImage(rgb, fir, sensorOrientation);
+            inputImageBuffer = loadImage(rgb, fir);
         } catch (IOException e) {
             return null;
         }
-
-//        byte[] i = new byte[inputImageBuffer.length];
-//
-//        ByteBuffer buffer = ByteBuffer.wrap(i);
-//        FloatBuffer fb = buffer.asFloatBuffer();
-//
-//        float[] floatArray = new float[fb.limit()];
-//        fb.get(floatArray);
-
-
-        long endTimeForLoadImage = SystemClock.uptimeMillis();
         Trace.endSection();
 
         // Runs the inference call.
         Trace.beginSection("runInference");
-//        long startTimeForReference = SystemClock.uptimeMillis();
-//        tflite.run(inputImageBuffer.getBuffer(), outputProbabilityBuffer.getBuffer().rewind());
-
         tflite.run(inputImageBuffer, outputProbabilityBuffer.getBuffer().rewind());
-
-//        long endTimeForReference = SystemClock.uptimeMillis();
         Trace.endSection();
 
         // Gets the map of label and probability.
@@ -225,87 +177,32 @@ public class ModelHandler {
     /**
      * Loads input image, and applies pre-processing.
      */
-    private FloatBuffer loadImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) throws IOException {
+    private FloatBuffer loadImage(final Bitmap rgb, final Bitmap fir) throws IOException {
 
+        // Convert to OpenCV Mat and resize to required input size
+        Mat rgbMat = new Mat(rgb.getWidth(), rgb.getHeight(), CvType.CV_32F);
+        Utils.bitmapToMat(rgb, rgbMat);
 
-//        int[] rgbArray = new int[rgb.getWidth() * rgb.getHeight() * 3];
-//        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
-//        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
-//        Mat test = converter.convert(rgbArray);
-//
-//        int[] firArray = new int[fir.getWidth() * fir.getHeight() * 3];
-//        rgb.getPixels(rgbArray, 0, rgb.getWidth(), 0, 0, rgb.getWidth(), rgb.getHeight());
-//        int[] shape = {rgb.getWidth(), rgb.getHeight(), 3};
+        Mat firMat = new Mat();
+        Utils.bitmapToMat(fir, firMat);
 
-        Log.i(">>>>>>>TAG", "GOT HERE" );
+        Imgproc.resize(rgbMat, rgbMat, new Size(imageWidth, imageHeight));
+        Imgproc.resize(firMat, firMat, new Size(imageWidth, imageHeight));
 
-        Mat rgbArray = new Mat(rgb.getWidth(), rgb.getHeight(), CvType.CV_32F);
-        Utils.bitmapToMat(rgb, rgbArray);
+        // Convert to NdArray
+        NativeImageLoader loader = new NativeImageLoader(imageHeight, imageWidth, 3);
 
-        Mat firArray = new Mat();
-        Utils.bitmapToMat(fir, firArray);
+        INDArray rgbArray = loader.asMatrix(rgbMat);
+        INDArray firArray = loader.asMatrix(rgbMat);
 
-
-//        Imgproc.resize(rgbArray, rgbArray, firArray.size());
-        Imgproc.resize(rgbArray, rgbArray, new Size(240, 320));
-        Imgproc.resize(firArray, firArray, new Size(240, 320));
-
-        int a = firArray.width();
-        int b = firArray.height();
-        int c = firArray.width();
-        int d = firArray.height();
-
-//        ArrayList<Mat> channels = new ArrayList<>();
-//        channels.add(rgbArray);
-//        channels.add(firArray);
-        Log.i(">>>>>>>TAG", "SHAPE: " + firArray.size() + ", " + rgbArray.size());
-        Log.i(">>>>>>>TAG", "CHANS: " + firArray.channels() + ", " + rgbArray.channels());
-
-        NativeImageLoader loader = new NativeImageLoader(320, 240, 3);
-
-        INDArray rgbImage = loader.asMatrix(rgbArray);
-        INDArray firImage = loader.asMatrix(rgbArray);
-
-//        INDArray rgbImage = loader.asMatrix(rgb);
-//        INDArray firImage = loader.asMatrix(fir);
-
-        INDArray firImageMean = firImage.mean(1);
+        // Collapse FIR to 1 channel, stack FIR and RGB together
+        INDArray firImageMean = firArray.mean(1);
         firImageMean = Nd4j.expandDims(firImageMean, 0);
 
-        long[] e = firImageMean.shape();
-        long[] f = rgbImage.shape();
-
-
-
-        INDArray stackedImage = Nd4j.concat(1, rgbImage, firImageMean);
+        INDArray stackedImage = Nd4j.concat(1, rgbArray, firImageMean);
         stackedImage = stackedImage.divi(255);
 
-        long[] g = stackedImage.shape();
-
-        FloatBuffer result = stackedImage.data().asNio().asFloatBuffer();
-
-        String asdf = result.toString();
-//        int h = result.length;
-//        Core.merge(channels, )
-
-        return result;
-//        // Loads bitmap into a TensorImage.
-//        inputImageBuffer.load(bitmap);
-//        inputImageBuffer.load(bitmap);
-//
-//
-//
-//        // Creates processor for the TensorImage.
-//        int cropSize = Math.min(bitmap.getWidth(), bitmap.getHeight());
-//        int numRoration = sensorOrientation / 90;
-//
-//        ImageProcessor imageProcessor =
-//            new ImageProcessor.Builder()
-//                .add(new ResizeWithCropOrPadOp(cropSize, cropSize))
-//                .add(new ResizeOp(imageSizeX, imageSizeY, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
-//                .add(new Rot90Op(numRoration))
-//                .build();
-//        return imageProcessor.process(inputImageBuffer);
+        return stackedImage.data().asNio().asFloatBuffer();
     }
 
     /**
@@ -315,13 +212,10 @@ public class ModelHandler {
         // Find the best classifications.
         PriorityQueue<Recognition> pq = new PriorityQueue<>(
             MAX_RESULTS,
-            new Comparator<Recognition>() {
-                @Override
-                public int compare(Recognition lhs, Recognition rhs) {
-                    // Intentionally reversed to put high confidence at the head of the queue.
-                    return Float.compare(rhs.getConfidence(), lhs.getConfidence());
-                }
-        });
+            (lhs, rhs) -> {
+                // Intentionally reversed to put high confidence at the head of the queue.
+                return Float.compare(rhs.getConfidence(), lhs.getConfidence());
+            });
 
         for (Map.Entry<String, Float> entry : labelProb.entrySet()) {
             pq.add(new Recognition("" + entry.getKey(), entry.getKey(), entry.getValue()));
@@ -336,7 +230,7 @@ public class ModelHandler {
     }
 
     /** Closes the interpreter and model to release resources. */
-    public void close() {
+    void close() {
         if (tflite != null) {
             tflite.close();
             tflite = null;
@@ -356,7 +250,7 @@ public class ModelHandler {
     /**
      * An immutable result returned by a Classifier describing what was recognized.
      */
-    public static class Recognition {
+    static class Recognition {
         /**
          * A unique identifier for what has been recognized. Specific to the class, not the instance of
          * the object.
@@ -374,26 +268,27 @@ public class ModelHandler {
         private final Float confidence;
 
 
-        public Recognition(
+        Recognition(
                 final String id, final String title, final Float confidence) {
             this.id = id;
             this.title = title;
             this.confidence = confidence;
         }
 
-        public String getId() {
+        String getId() {
             return id;
         }
 
-        public String getTitle() {
+        String getTitle() {
             return title;
         }
 
-        public Float getConfidence() {
+        Float getConfidence() {
             return confidence;
         }
 
         @Override
+        @NonNull
         public String toString() {
             String resultString = "";
             if (id != null) {
@@ -405,7 +300,7 @@ public class ModelHandler {
             }
 
             if (confidence != null) {
-                resultString += String.format("(%.1f%%) ", confidence * 100.0f);
+                resultString += String.format(Locale.UK, "(%.1f%%) ", confidence * 100.0f);
             }
 
             return resultString.trim();
