@@ -202,6 +202,8 @@ class ModelHandler {
         INDArray stackedImage = Nd4j.concat(1, rgbArray, firImageMean);
         stackedImage = stackedImage.divi(255);
 
+        stackedImage = stackedImage.permute(0, 2, 3, 1);
+
         return stackedImage.data().asNio().asFloatBuffer();
     }
 
@@ -229,7 +231,9 @@ class ModelHandler {
         return recognitions;
     }
 
-    /** Closes the interpreter and model to release resources. */
+    /**
+     * Closes the interpreter and model to release resources.
+     */
     void close() {
         if (tflite != null) {
             tflite.close();
