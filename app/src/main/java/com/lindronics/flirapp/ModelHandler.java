@@ -179,24 +179,24 @@ public class ModelHandler {
         Trace.beginSection("recognizeImage");
 
         Trace.beginSection("loadImage");
-        long startTimeForLoadImage = SystemClock.uptimeMillis();
+//        long startTimeForLoadImage = SystemClock.uptimeMillis();
 
 
 //        inputImageBuffer = loadImage(bitmap, sensorOrientation);
-        float[] inputImageBuffer = null;
+        FloatBuffer inputImageBuffer = null;
         try {
             inputImageBuffer = loadImage(rgb, fir, sensorOrientation);
         } catch (IOException e) {
             return null;
         }
 
-        byte[] i = new byte[inputImageBuffer.length];
-
-        ByteBuffer buffer = ByteBuffer.wrap(i);
-        FloatBuffer fb = buffer.asFloatBuffer();
-
-        float[] floatArray = new float[fb.limit()];
-        fb.get(floatArray);
+//        byte[] i = new byte[inputImageBuffer.length];
+//
+//        ByteBuffer buffer = ByteBuffer.wrap(i);
+//        FloatBuffer fb = buffer.asFloatBuffer();
+//
+//        float[] floatArray = new float[fb.limit()];
+//        fb.get(floatArray);
 
 
         long endTimeForLoadImage = SystemClock.uptimeMillis();
@@ -207,7 +207,7 @@ public class ModelHandler {
 //        long startTimeForReference = SystemClock.uptimeMillis();
 //        tflite.run(inputImageBuffer.getBuffer(), outputProbabilityBuffer.getBuffer().rewind());
 
-        tflite.run(fb, outputProbabilityBuffer.getBuffer().rewind());
+        tflite.run(inputImageBuffer, outputProbabilityBuffer.getBuffer().rewind());
 
 //        long endTimeForReference = SystemClock.uptimeMillis();
         Trace.endSection();
@@ -225,7 +225,7 @@ public class ModelHandler {
     /**
      * Loads input image, and applies pre-processing.
      */
-    private float[] loadImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) throws IOException {
+    private FloatBuffer loadImage(final Bitmap rgb, final Bitmap fir, int sensorOrientation) throws IOException {
 
 
 //        int[] rgbArray = new int[rgb.getWidth() * rgb.getHeight() * 3];
@@ -245,14 +245,15 @@ public class ModelHandler {
         Mat firArray = new Mat();
         Utils.bitmapToMat(fir, firArray);
 
+
+//        Imgproc.resize(rgbArray, rgbArray, firArray.size());
+        Imgproc.resize(rgbArray, rgbArray, new Size(240, 320));
+        Imgproc.resize(firArray, firArray, new Size(240, 320));
+
         int a = firArray.width();
         int b = firArray.height();
         int c = firArray.width();
         int d = firArray.height();
-
-//        Imgproc.resize(rgbArray, rgbArray, firArray.size());
-        Imgproc.resize(rgbArray, rgbArray, new Size(480, 320));
-        Imgproc.resize(firArray, firArray, new Size(480, 320));
 
 //        ArrayList<Mat> channels = new ArrayList<>();
 //        channels.add(rgbArray);
@@ -260,23 +261,31 @@ public class ModelHandler {
         Log.i(">>>>>>>TAG", "SHAPE: " + firArray.size() + ", " + rgbArray.size());
         Log.i(">>>>>>>TAG", "CHANS: " + firArray.channels() + ", " + rgbArray.channels());
 
-        NativeImageLoader loader = new NativeImageLoader();
+        NativeImageLoader loader = new NativeImageLoader(320, 240, 3);
 
         INDArray rgbImage = loader.asMatrix(rgbArray);
         INDArray firImage = loader.asMatrix(rgbArray);
 
+//        INDArray rgbImage = loader.asMatrix(rgb);
+//        INDArray firImage = loader.asMatrix(fir);
+
         INDArray firImageMean = firImage.mean(1);
+        firImageMean = Nd4j.expandDims(firImageMean, 0);
 
         long[] e = firImageMean.shape();
         long[] f = rgbImage.shape();
 
-        INDArray stackedImage = Nd4j.stack(1, rgbImage, firImage);
+
+
+        INDArray stackedImage = Nd4j.concat(1, rgbImage, firImageMean);
         stackedImage = stackedImage.divi(255);
 
-        long[] g = rgbImage.shape();
+        long[] g = stackedImage.shape();
 
-        float[] result = stackedImage.data().asFloat();
-        int h = result.length;
+        FloatBuffer result = stackedImage.data().asNio().asFloatBuffer();
+
+        String asdf = result.toString();
+//        int h = result.length;
 //        Core.merge(channels, )
 
         return result;

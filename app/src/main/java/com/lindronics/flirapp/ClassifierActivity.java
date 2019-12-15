@@ -41,7 +41,8 @@ public class ClassifierActivity extends AppCompatActivity {
 
     ModelHandler modelHandler;
 
-    private TextView predictionsBox;
+    private TextView firstPredictionBox;
+    private TextView secondPredictionBox;
 
 
     /**
@@ -74,7 +75,8 @@ public class ClassifierActivity extends AppCompatActivity {
 //        modelHandler = new ModelHandler(this, ModelHandler.Device.GPU, 1);
         recreateModelHandler();
 
-        predictionsBox = findViewById(R.id.predictions_box);
+        firstPredictionBox = findViewById(R.id.first_prediction_box);
+        secondPredictionBox = findViewById(R.id.second_prediction_box);
     }
 
     @Override
@@ -150,7 +152,7 @@ public class ClassifierActivity extends AppCompatActivity {
                     final List<ModelHandler.Recognition> results =
                             modelHandler.recognizeImage(rgbBitmap, firBitmap, sensorOrientation);
 //                    lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
-//                    LOGGER.v("Detect: %s", results);
+                    Log.i("UPDATE", "Confidence: " + results.get(0).getConfidence());
 
                     runOnUiThread(() -> {
                         showResultsInBottomSheet(results);
@@ -164,27 +166,16 @@ public class ClassifierActivity extends AppCompatActivity {
 
     @UiThread
     protected void showResultsInBottomSheet(List<ModelHandler.Recognition> results) {
-        if (results != null && results.size() >= 1) {
+        if (results != null && results.size() >= 2) {
             ModelHandler.Recognition recognition = results.get(0);
             if (recognition != null) {
-                    predictionsBox.setText(recognition.getTitle() + String.format(" %.2f", (100 * recognition.getConfidence())) + "%");
+                firstPredictionBox.setText(recognition.getTitle() + String.format(" %.2f", (100 * recognition.getConfidence())) + "%");
             }
 
-//            Recognition recognition1 = results.get(1);
-//            if (recognition1 != null) {
-//                if (recognition1.getTitle() != null) recognition1TextView.setText(recognition1.getTitle());
-//                if (recognition1.getConfidence() != null)
-//                    recognition1ValueTextView.setText(
-//                            String.format("%.2f", (100 * recognition1.getConfidence())) + "%");
-//            }
-//
-//            Recognition recognition2 = results.get(2);
-//            if (recognition2 != null) {
-//                if (recognition2.getTitle() != null) recognition2TextView.setText(recognition2.getTitle());
-//                if (recognition2.getConfidence() != null)
-//                    recognition2ValueTextView.setText(
-//                            String.format("%.2f", (100 * recognition2.getConfidence())) + "%");
-//            }
+            ModelHandler.Recognition recognition2 = results.get(1);
+            if (recognition != null) {
+                secondPredictionBox.setText(recognition2.getTitle() + String.format(" %.2f", (100 * recognition2.getConfidence())) + "%");
+            }
         }
     }
 
