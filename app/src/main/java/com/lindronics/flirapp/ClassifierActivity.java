@@ -37,8 +37,6 @@ public class ClassifierActivity extends AppCompatActivity {
 
     private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
 
-    private ImageWriter imageWriter = null;
-
     ModelHandler modelHandler;
 
     private TextView firstPredictionBox;
@@ -140,25 +138,15 @@ public class ClassifierActivity extends AppCompatActivity {
                 }
             });
 
-            // Classification
+            // Run classification
             runInBackground(() -> {
-
-                // TODO implement rotation scanner
-                int sensorOrientation = 0;
-
-
                 if (modelHandler != null) {
-//                    final long startTime = SystemClock.uptimeMillis();
                     final List<ModelHandler.Recognition> results =
-                            modelHandler.recognizeImage(rgbBitmap, firBitmap, sensorOrientation);
-//                    lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+                            modelHandler.recognizeImage(rgbBitmap, firBitmap);
                     Log.i("UPDATE", "Confidence: " + results.get(0).getConfidence());
 
-                    runOnUiThread(() -> {
-                        showResultsInBottomSheet(results);
-                    });
+                    runOnUiThread(() -> showResultsInBottomSheet(results));
                 }
-//                readyForNextImage();
             });
 
         }
@@ -169,12 +157,12 @@ public class ClassifierActivity extends AppCompatActivity {
         if (results != null && results.size() >= 2) {
             ModelHandler.Recognition recognition = results.get(0);
             if (recognition != null) {
-                firstPredictionBox.setText(recognition.getTitle() + String.format(" %.2f", (100 * recognition.getConfidence())) + "%");
+                firstPredictionBox.setText(recognition.toString());
             }
 
             ModelHandler.Recognition recognition2 = results.get(1);
             if (recognition != null) {
-                secondPredictionBox.setText(recognition2.getTitle() + String.format(" %.2f", (100 * recognition2.getConfidence())) + "%");
+                secondPredictionBox.setText(recognition2.toString());
             }
         }
     }
