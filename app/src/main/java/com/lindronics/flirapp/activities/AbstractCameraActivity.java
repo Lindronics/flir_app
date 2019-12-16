@@ -1,13 +1,10 @@
 package com.lindronics.flirapp.activities;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
-import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,7 +16,6 @@ import com.google.gson.Gson;
 import com.lindronics.flirapp.R;
 import com.lindronics.flirapp.camera.CameraHandler;
 import com.lindronics.flirapp.camera.FrameDataHolder;
-import com.lindronics.flirapp.camera.ImageWriter;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -25,8 +25,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:fullBackupContent="@xml/backup_descriptor">
-        <activity android:name=".activities.CameraActivity" />
-        <activity android:name=".activities.ClassifierActivity" />
+        <activity
+            android:name=".activities.CameraActivity"
+            android:label="Camera"/>
+        <activity
+            android:name=".activities.ClassifierActivity"
+            android:label="Classifier"/>
         <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

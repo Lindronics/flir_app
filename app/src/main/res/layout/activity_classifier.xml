@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context="activities.ClassifierActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -15,7 +15,8 @@
             android:id="@+id/first_prediction_box"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="N/A"
+            android:layout_alignParentTop="true"
+            android:text="@string/not_available"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -25,7 +26,8 @@
             android:id="@+id/second_prediction_box"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="N/A"
+            android:layout_below="@+id/first_prediction_box"
+            android:text="@string/not_available"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -34,14 +36,15 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_below="@+id/second_prediction_box"
+            android:layout_alignParentBottom="true">
 
             <ImageView
                 android:id="@+id/fir_view"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:contentDescription="FIR image"
+                android:contentDescription="@string/fir"
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
 
@@ -50,11 +53,11 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:contentDescription="RGB image"
+                android:contentDescription="@string/rgb"
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
         </LinearLayout>
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
