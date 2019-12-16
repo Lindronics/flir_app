@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CameraActivity">
+    tools:context=".ClassifierActivityActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -15,12 +15,21 @@
             android:id="@+id/first_prediction_box"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hello World!"
+            android:text="N/A"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:id="@+id/second_prediction_box"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="N/A"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -46,14 +55,6 @@
                 android:minWidth="50dp" />
         </LinearLayout>
 
-        <ToggleButton
-            android:id="@+id/camera_button"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_gravity="center_horizontal"
-            android:text="Record"
-            android:onClick="toggleCapture"
-            android:background="@drawable/ic_camera_capture_ready"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

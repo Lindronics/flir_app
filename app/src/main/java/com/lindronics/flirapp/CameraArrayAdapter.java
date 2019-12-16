@@ -53,6 +53,18 @@ public class CameraArrayAdapter extends ArrayAdapter<Identity> {
             context.startActivity(i);
         });
 
+        Button classifierActivityButton = rowView.findViewById(R.id.classifier_activity_button);
+        classifierActivityButton.setOnClickListener((View view) -> {
+
+            // Convert identity to JSON, as it is not serializable and the class is final
+            Gson gson = new Gson();
+            String serializedIdentity = gson.toJson(cameraIdentity);
+
+            Intent i = new Intent(context, ClassifierActivity.class);
+            i.putExtra("cameraIdentity", serializedIdentity);
+            context.startActivity(i);
+        });
+
         return rowView;
     }
 

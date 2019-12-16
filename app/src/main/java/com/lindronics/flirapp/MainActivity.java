@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void show(String message) {
 //            Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
-            TextView view = findViewById(R.id.textBox);
+            TextView view = findViewById(R.id.first_prediction_box);
             view.setText(view.getText() + "\n" + message);
         }
 

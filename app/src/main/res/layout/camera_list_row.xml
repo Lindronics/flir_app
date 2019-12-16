@@ -21,10 +21,10 @@
         android:text="Camera"/>
 
     <Button
-        android:id="@+id/model_activity_button"
+        android:id="@+id/classifier_activity_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_column="2"
-        android:text="Model"/>
+        android:text="Classifier"/>
 
 </GridLayout>
