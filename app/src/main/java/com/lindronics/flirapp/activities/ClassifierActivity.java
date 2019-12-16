@@ -1,6 +1,5 @@
 package com.lindronics.flirapp.activities;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -78,19 +77,14 @@ public class ClassifierActivity extends AbstractCameraActivity {
     }
 
     @Override
-    public void images(FrameDataHolder dataHolder) {
-        super.images(dataHolder);
-    }
-
-    @Override
-    public void images(Bitmap firBitmap, Bitmap rgbBitmap) {
-        super.images(firBitmap, rgbBitmap);
+    public void receiveImages(FrameDataHolder images) {
+        super.receiveImages(images);
 
         // Run classification
         runInBackground(() -> {
             if (modelHandler != null) {
                 final List<ModelHandler.Recognition> results =
-                        modelHandler.recognizeImage(rgbBitmap, firBitmap);
+                        modelHandler.recognizeImage(images);
                 Log.i("UPDATE", "Confidence: " + results.get(0).getConfidence());
 
                 runOnUiThread(() -> showResultsInBottomSheet(results));

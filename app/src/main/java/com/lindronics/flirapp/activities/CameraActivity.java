@@ -1,6 +1,5 @@
 package com.lindronics.flirapp.activities;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ToggleButton;
@@ -30,17 +29,12 @@ public class CameraActivity extends AbstractCameraActivity {
     }
 
     @Override
-    public void images(FrameDataHolder dataHolder) {
-        super.images(dataHolder);
-    }
+    public void receiveImages(FrameDataHolder images) {
 
-    @Override
-    public void images(Bitmap firBitmap, Bitmap rgbBitmap) {
-
-        super.images(firBitmap, rgbBitmap);
+        super.receiveImages(images);
 
         if (imageWriter != null) {
-            imageWriter.saveImages(firBitmap, rgbBitmap);
+            imageWriter.saveImages(images);
         }
     }
 

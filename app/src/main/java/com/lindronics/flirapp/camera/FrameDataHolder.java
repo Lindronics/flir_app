@@ -4,11 +4,11 @@ import android.graphics.Bitmap;
 
 public class FrameDataHolder {
 
-    public final Bitmap firBitmap;
     public final Bitmap rgbBitmap;
+    public final Bitmap firBitmap;
 
-    public FrameDataHolder(Bitmap firBitmap, Bitmap rgbBitmap){
-        this.firBitmap = firBitmap;
+    public FrameDataHolder(Bitmap rgbBitmap, Bitmap firBitmap){
         this.rgbBitmap = rgbBitmap;
+        this.firBitmap = firBitmap;
     }
 }

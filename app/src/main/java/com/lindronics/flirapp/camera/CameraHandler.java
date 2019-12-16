@@ -24,9 +24,7 @@ public class CameraHandler {
     private Camera camera;
 
     public interface StreamDataListener {
-        void images(FrameDataHolder dataHolder);
-
-        void images(Bitmap msxBitmap, Bitmap dcBitmap);
+        void receiveImages(FrameDataHolder dataHolder);
     }
 
     private StreamDataListener streamDataListener;
@@ -112,7 +110,7 @@ public class CameraHandler {
     }
 
     /**
-     * For processing images and updating UI
+     * For processing receiveImages and updating UI
      */
     private final Camera.Consumer<ThermalImage> handleIncomingImage = new Camera.Consumer<ThermalImage>() {
 
@@ -126,8 +124,8 @@ public class CameraHandler {
             // Get a bitmap with the visual image
             Bitmap rgbBitmap = BitmapAndroid.createBitmap(Objects.requireNonNull(thermalImage.getFusion().getPhoto())).getBitMap();
 
-            // Add images to cache
-            streamDataListener.images(firBitmap, rgbBitmap);
+            // Add receiveImages to cache
+            streamDataListener.receiveImages(new FrameDataHolder(rgbBitmap, firBitmap));
         }
     };
 }

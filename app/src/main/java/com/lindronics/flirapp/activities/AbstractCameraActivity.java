@@ -66,33 +66,18 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
         cameraHandler.connect(cameraIdentity, connectionStatusListener);
     }
 
-
     /**
-     * Receive images from camera handler
-     * @param dataHolder Contains images
+     * Receive receiveImages from camera handler
+     * @param images RGB and FIR receiveImages
      */
     @Override
-    public void images(FrameDataHolder dataHolder) {
-
-        runOnUiThread(() -> {
-            firImage.setImageBitmap(dataHolder.firBitmap);
-            rgbImage.setImageBitmap(dataHolder.rgbBitmap);
-        });
-    }
-
-    /**
-     * Receive images from camera handler
-     * @param firBitmap FIR image
-     * @param rgbBitmap RGB image
-     */
-    @Override
-    public void images(Bitmap firBitmap, Bitmap rgbBitmap) {
+    public void receiveImages(FrameDataHolder images) {
 
         try {
-            framesBuffer.put(new FrameDataHolder(firBitmap, rgbBitmap));
+            framesBuffer.put(images);
         } catch (InterruptedException e) {
             // If interrupted while waiting for adding a new item in the queue
-            Log.e(TAG, "images(), unable to add incoming images to frames buffer, exception:" + e);
+            Log.e(TAG, "receiveImages(), unable to add incoming receiveImages to frames buffer, exception:" + e);
         }
 
         runOnUiThread(() -> {
@@ -103,10 +88,6 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
                 rgbImage.setImageBitmap(poll.rgbBitmap);
             }
         });
-
-        if (imageWriter != null) {
-            imageWriter.saveImages(firBitmap, rgbBitmap);
-        }
     }
 
 

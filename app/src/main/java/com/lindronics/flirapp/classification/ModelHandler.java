@@ -7,6 +7,8 @@ import android.os.Trace;
 
 import androidx.annotation.NonNull;
 
+import com.lindronics.flirapp.camera.FrameDataHolder;
+
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.GpuDelegate;
@@ -130,12 +132,12 @@ public class ModelHandler {
     /**
      * Runs inference and returns the classification results.
      */
-    public List<Recognition> recognizeImage(final Bitmap rgb, final Bitmap fir) {
+    public List<Recognition> recognizeImage(final FrameDataHolder images) {
         Trace.beginSection("recognizeImage");
 
-        // Load images
+        // Load receiveImages
         Trace.beginSection("loadImage");
-        float[][][][] inputImageBuffer = loadImage(rgb, fir);
+        float[][][][] inputImageBuffer = loadImage(images);
         Trace.endSection();
 
         // Runs the inference call.
@@ -166,11 +168,11 @@ public class ModelHandler {
     /**
      * Loads input image, and applies pre-processing.
      */
-    private float[][][][] loadImage(final Bitmap rgbBitmap, final Bitmap firBitmap) {
+    private float[][][][] loadImage(final FrameDataHolder images) {
 
         // Rescale to expected dimensions
-        Bitmap rgbRescaled = Bitmap.createScaledBitmap(rgbBitmap, imageWidth, imageHeight, true);
-        Bitmap firRescaled = Bitmap.createScaledBitmap(firBitmap, imageWidth, imageHeight, true);
+        Bitmap rgbRescaled = Bitmap.createScaledBitmap(images.rgbBitmap, imageWidth, imageHeight, true);
+        Bitmap firRescaled = Bitmap.createScaledBitmap(images.firBitmap, imageWidth, imageHeight, true);
 
         int[] rgbArray = new int[imageWidth * imageHeight];
         rgbRescaled.getPixels(rgbArray, 0, imageWidth, 0, 0, imageWidth, imageHeight);
