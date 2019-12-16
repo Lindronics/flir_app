@@ -174,7 +174,7 @@ public class ClassifierActivity extends AppCompatActivity {
         }
 
         try {
-            modelHandler = new ModelHandler(this, ModelHandler.Device.CPU, 2);
+            modelHandler = new ModelHandler(this, ModelHandler.Device.CPU, 2, true);
         } catch (IOException e) {
             e.printStackTrace();
             finish();

@@ -12,8 +12,6 @@ import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.GpuDelegate;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.common.FileUtil;
-import org.tensorflow.lite.support.common.TensorProcessor;
-import org.tensorflow.lite.support.common.ops.NormalizeOp;
 import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
@@ -38,6 +36,11 @@ class ModelHandler {
     private MappedByteBuffer tfliteModel;
 
     /**
+     * Whether this is a binary or multi-class model
+     */
+    private Boolean isBinaryClassifier;
+
+    /**
      * Labels corresponding to the output of the model.
      */
     private List<String> labels;
@@ -56,11 +59,6 @@ class ModelHandler {
      * Output probability TensorBuffer.
      */
     private TensorBuffer outputProbabilityBuffer;
-
-    /**
-     * Processor to apply post-processing of the output probability.
-     */
-    private TensorProcessor probabilityProcessor;
 
     /**
      * Image size along the x axis.
@@ -86,7 +84,9 @@ class ModelHandler {
         GPU
     }
 
-    ModelHandler(Activity activity, Device device, int numThreads) throws IOException {
+    ModelHandler(Activity activity, Device device, int numThreads, Boolean isBinaryClassifier) throws IOException {
+
+        this.isBinaryClassifier = isBinaryClassifier;
 
         // Load model
         tfliteModel = FileUtil.loadMappedFile(activity, "model.tflite");
@@ -124,9 +124,6 @@ class ModelHandler {
 
         // Create the output tensor and its processor.
         outputProbabilityBuffer = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
-
-        // Create the post processor for the output probability.
-        probabilityProcessor = new TensorProcessor.Builder().add(new NormalizeOp(0.0f, 1.0f)).build();
     }
 
 
@@ -146,14 +143,24 @@ class ModelHandler {
         tflite.run(inputImageBuffer, outputProbabilityBuffer.getBuffer().rewind());
         Trace.endSection();
 
-        // Gets the map of label and probability.
-        Map<String, Float> labeledProbability =
-                new TensorLabel(labels, probabilityProcessor.process(outputProbabilityBuffer))
-                        .getMapWithFloatValue();
-        Trace.endSection();
+        if (isBinaryClassifier) {
+            float[] probability = outputProbabilityBuffer.getFloatArray();
+            Trace.endSection();
 
-        // Gets top-k results.
-        return getTopKProbability(labeledProbability);
+            // In binary classification, return positive and negative class
+            ArrayList<Recognition> predictions = new ArrayList<>();
+            predictions.add(new Recognition("0", labels.get(0), 1 - probability[0]));
+            predictions.add(new Recognition("1", labels.get(1), probability[0]));
+            return predictions;
+        } else {
+            // Gets the map of label and probability.
+            Map<String, Float> labeledProbability =
+                    new TensorLabel(labels, outputProbabilityBuffer)
+                            .getMapWithFloatValue();
+
+            //Gets top-k results.
+            return getTopKProbability(labeledProbability);
+        }
     }
 
     /**
