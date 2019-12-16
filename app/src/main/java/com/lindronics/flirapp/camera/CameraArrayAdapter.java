@@ -1,4 +1,4 @@
-package com.lindronics.flirapp;
+package com.lindronics.flirapp.camera;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +11,9 @@ import android.widget.TextView;
 
 import com.flir.thermalsdk.live.Identity;
 import com.google.gson.Gson;
+import com.lindronics.flirapp.R;
+import com.lindronics.flirapp.activities.CameraActivity;
+import com.lindronics.flirapp.activities.ClassifierActivity;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +23,7 @@ public class CameraArrayAdapter extends ArrayAdapter<Identity> {
     private final Context context;
     private List<Identity> identityList;
 
-    CameraArrayAdapter(Context context, List<Identity> identityList) {
+    public CameraArrayAdapter(Context context, List<Identity> identityList) {
         super(context, -1, identityList);
         this.context = context;
         this.identityList = identityList;

@@ -1,4 +1,4 @@
-package com.lindronics.flirapp;
+package com.lindronics.flirapp.classification;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -23,7 +23,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-class ModelHandler {
+public class ModelHandler {
 
     /**
      * Interpreter for inference
@@ -84,7 +84,7 @@ class ModelHandler {
         GPU
     }
 
-    ModelHandler(Activity activity, Device device, int numThreads, Boolean isBinaryClassifier) throws IOException {
+    public ModelHandler(Activity activity, Device device, int numThreads, Boolean isBinaryClassifier) throws IOException {
 
         this.isBinaryClassifier = isBinaryClassifier;
 
@@ -130,7 +130,7 @@ class ModelHandler {
     /**
      * Runs inference and returns the classification results.
      */
-    List<Recognition> recognizeImage(final Bitmap rgb, final Bitmap fir) {
+    public List<Recognition> recognizeImage(final Bitmap rgb, final Bitmap fir) {
         Trace.beginSection("recognizeImage");
 
         // Load images
@@ -223,7 +223,7 @@ class ModelHandler {
     /**
      * Closes the interpreter and model to release resources.
      */
-    void close() {
+    public void close() {
         if (tflite != null) {
             tflite.close();
             tflite = null;
@@ -243,7 +243,7 @@ class ModelHandler {
     /**
      * An immutable result returned by a Classifier describing what was recognized.
      */
-    static class Recognition {
+    public static class Recognition {
         /**
          * A unique identifier for what has been recognized. Specific to the class, not the instance of
          * the object.
@@ -268,15 +268,15 @@ class ModelHandler {
             this.confidence = confidence;
         }
 
-        String getId() {
+        public String getId() {
             return id;
         }
 
-        String getTitle() {
+        public String getTitle() {
             return title;
         }
 
-        Float getConfidence() {
+        public Float getConfidence() {
             return confidence;
         }
 

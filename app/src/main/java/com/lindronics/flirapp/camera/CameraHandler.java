@@ -1,4 +1,4 @@
-package com.lindronics.flirapp;
+package com.lindronics.flirapp.camera;
 
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -16,7 +16,7 @@ import com.flir.thermalsdk.live.streaming.ThermalImageStreamListener;
 
 import java.util.Objects;
 
-class CameraHandler {
+public class CameraHandler {
 
     private static final String TAG = "Camera handler";
 
@@ -43,7 +43,7 @@ class CameraHandler {
     /**
      * Empty constructor for now
      */
-    CameraHandler() {
+    public CameraHandler() {
     }
 
     /**
@@ -52,7 +52,7 @@ class CameraHandler {
      * @param cameraDiscoveryListener -
      * @param discoveryStatus         Current discovery status
      */
-    void startDiscovery(DiscoveryEventListener cameraDiscoveryListener, DiscoveryStatus discoveryStatus) {
+    public void startDiscovery(DiscoveryEventListener cameraDiscoveryListener, DiscoveryStatus discoveryStatus) {
         DiscoveryFactory.getInstance().scan(cameraDiscoveryListener, CommunicationInterface.EMULATOR, CommunicationInterface.USB);
         discoveryStatus.started();
     }
@@ -62,7 +62,7 @@ class CameraHandler {
      *
      * @param discoveryStatus Current discovery status
      */
-    void stopDiscovery(DiscoveryStatus discoveryStatus) {
+    public void stopDiscovery(DiscoveryStatus discoveryStatus) {
         DiscoveryFactory.getInstance().stop(CommunicationInterface.EMULATOR, CommunicationInterface.USB);
         discoveryStatus.stopped();
     }
@@ -73,7 +73,7 @@ class CameraHandler {
      * @param identity                 Identity of a discovered FLIR camera
      * @param connectionStatusListener Event listener
      */
-    void connect(Identity identity, ConnectionStatusListener connectionStatusListener) {
+    public void connect(Identity identity, ConnectionStatusListener connectionStatusListener) {
         camera = new Camera();
         camera.connect(identity, connectionStatusListener);
     }
@@ -81,7 +81,7 @@ class CameraHandler {
     /**
      * Disconnect a FLIR One camera
      */
-    void disconnect() {
+    public void disconnect() {
         if (camera == null) {
             return;
         }
@@ -98,7 +98,7 @@ class CameraHandler {
      * @param identity identity of the device
      * @return true if the device is the emulator
      */
-    Boolean isEmulator(Identity identity) {
+    public Boolean isEmulator(Identity identity) {
         return identity.deviceId.contains("EMULATED FLIR ONE");
     }
 
@@ -108,7 +108,7 @@ class CameraHandler {
      * @param identity identity of the device
      * @return true if the device is a FLIR One camera
      */
-    Boolean isCamera(Identity identity) {
+    public Boolean isCamera(Identity identity) {
         boolean isFlirOneEmulator = identity.deviceId.contains("EMULATED FLIR ONE");
         boolean isCppEmulator = identity.deviceId.contains("C++ Emulator");
         return !isFlirOneEmulator && !isCppEmulator;
@@ -128,7 +128,7 @@ class CameraHandler {
     /**
      * Subscribes to camera stream
      */
-    void startStream(StreamDataListener listener) {
+    public void startStream(StreamDataListener listener) {
         this.streamDataListener = listener;
         camera.subscribeStream(thermalImageStreamListener);
     }

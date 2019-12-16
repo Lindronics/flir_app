@@ -24,9 +24,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".CameraActivity" />
-        <activity android:name=".ClassifierActivity" />
-        <activity android:name=".MainActivity">
+        <activity android:name=".activities.CameraActivity" />
+        <activity android:name=".activities.ClassifierActivity" />
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

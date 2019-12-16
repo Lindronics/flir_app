@@ -1,4 +1,4 @@
-package com.lindronics.flirapp;
+package com.lindronics.flirapp.activities;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -14,6 +14,10 @@ import com.flir.thermalsdk.live.Identity;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.google.gson.Gson;
+import com.lindronics.flirapp.camera.CameraHandler;
+import com.lindronics.flirapp.R;
+import com.lindronics.flirapp.camera.FrameDataHolder;
+import com.lindronics.flirapp.camera.ImageWriter;
 
 import org.jetbrains.annotations.NotNull;
 

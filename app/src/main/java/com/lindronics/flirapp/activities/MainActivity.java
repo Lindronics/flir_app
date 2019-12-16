@@ -1,4 +1,4 @@
-package com.lindronics.flirapp;
+package com.lindronics.flirapp.activities;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +13,10 @@ import com.flir.thermalsdk.live.CommunicationInterface;
 import com.flir.thermalsdk.live.Identity;
 import com.flir.thermalsdk.live.discovery.DiscoveryEventListener;
 import com.flir.thermalsdk.log.ThermalLog;
+import com.lindronics.flirapp.BuildConfig;
+import com.lindronics.flirapp.R;
+import com.lindronics.flirapp.camera.CameraArrayAdapter;
+import com.lindronics.flirapp.camera.CameraHandler;
 
 import java.util.ArrayList;
 
