@@ -36,6 +36,7 @@ public class CameraArrayAdapter extends ArrayAdapter<Identity> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         if (rowView == null) {
+            assert inflater != null;
             rowView = inflater.inflate(R.layout.camera_list_row, parent, false);
         }
 

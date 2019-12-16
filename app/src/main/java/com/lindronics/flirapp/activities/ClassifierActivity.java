@@ -41,7 +41,7 @@ public class ClassifierActivity extends AppCompatActivity {
 
     private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
 
-    ModelHandler modelHandler;
+    private ModelHandler modelHandler;
 
     private TextView firstPredictionBox;
     private TextView secondPredictionBox;
@@ -103,7 +103,7 @@ public class ClassifierActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    protected synchronized void runInBackground(final Runnable r) {
+    private synchronized void runInBackground(final Runnable r) {
         if (handler != null) {
             handler.post(r);
         }
@@ -157,7 +157,7 @@ public class ClassifierActivity extends AppCompatActivity {
     };
 
     @UiThread
-    protected void showResultsInBottomSheet(List<ModelHandler.Recognition> results) {
+    private void showResultsInBottomSheet(List<ModelHandler.Recognition> results) {
         if (results != null && results.size() >= 2) {
             ModelHandler.Recognition recognition = results.get(0);
             if (recognition != null) {

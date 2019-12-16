@@ -93,28 +93,6 @@ public class CameraHandler {
     }
 
     /**
-     * Determines whether a device is the FLIR One emulator
-     *
-     * @param identity identity of the device
-     * @return true if the device is the emulator
-     */
-    public Boolean isEmulator(Identity identity) {
-        return identity.deviceId.contains("EMULATED FLIR ONE");
-    }
-
-    /**
-     * Determines whether a device is a FLIR One camera
-     *
-     * @param identity identity of the device
-     * @return true if the device is a FLIR One camera
-     */
-    public Boolean isCamera(Identity identity) {
-        boolean isFlirOneEmulator = identity.deviceId.contains("EMULATED FLIR ONE");
-        boolean isCppEmulator = identity.deviceId.contains("C++ Emulator");
-        return !isFlirOneEmulator && !isCppEmulator;
-    }
-
-    /**
      * Called when a new image is available (non-UI-thread)
      */
     private final ThermalImageStreamListener thermalImageStreamListener = new ThermalImageStreamListener() {
