@@ -33,9 +33,11 @@ public class CameraActivity extends AbstractCameraActivity {
 
         super.receiveImages(images);
 
-        if (imageWriter != null) {
-            imageWriter.saveImages(images);
-        }
+        runInBackground(() -> {
+            if (imageWriter != null) {
+                imageWriter.saveImages(images);
+            }
+        });
     }
 
     /**

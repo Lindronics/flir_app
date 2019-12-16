@@ -2,6 +2,8 @@ package com.lindronics.flirapp.activities;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -27,17 +29,15 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
 
     private static final String TAG = "AbstractCameraActivity";
 
+    private Handler handler;
+    private HandlerThread handlerThread;
+
     private CameraHandler cameraHandler;
 
     private ImageView rgbImage;
     private ImageView firImage;
 
     private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
-
-    private ToggleButton cameraButton;
-
-    private ImageWriter imageWriter = null;
-
 
     /**
      * Executed when activity is created.
@@ -66,6 +66,27 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
         cameraHandler.connect(cameraIdentity, connectionStatusListener);
     }
 
+    @Override
+    public synchronized void onResume() {
+        super.onResume();
+        handlerThread = new HandlerThread("inference");
+        handlerThread.start();
+        handler = new Handler(handlerThread.getLooper());
+    }
+
+    @Override
+    public synchronized void onPause() {
+        handlerThread.quitSafely();
+        try {
+            handlerThread.join();
+            handlerThread = null;
+            handler = null;
+        } catch (final InterruptedException e) {
+            e.printStackTrace();
+        }
+        super.onPause();
+    }
+
     /**
      * Receive receiveImages from camera handler
      * @param images RGB and FIR receiveImages
@@ -90,6 +111,15 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
         });
     }
 
+    /**
+     * Run procedure in background
+     * @param r Runnable to run
+     */
+    protected synchronized void runInBackground(final Runnable r) {
+        if (handler != null) {
+            handler.post(r);
+        }
+    }
 
 
     /**
