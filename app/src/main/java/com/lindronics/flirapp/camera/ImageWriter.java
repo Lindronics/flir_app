@@ -1,4 +1,4 @@
-package com.lindronics.flirapp;
+package com.lindronics.flirapp.camera;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -20,13 +20,13 @@ import java.util.Date;
 import java.util.Objects;
 
 /**
- * Handles writing images to the file system
+ * Handles writing receiveImages to the file system
  */
-class ImageWriter {
+public class ImageWriter {
 
     private final Context context;
 
-    ImageWriter(Context context) {
+    public ImageWriter(Context context) {
         this.context = context;
     }
 
@@ -91,17 +91,16 @@ class ImageWriter {
     /**
      * Saves FIR and RGB image to file system
      *
-     * @param fir FIR Bitmap
-     * @param rgb RGB Bitmap
+     * @param images the receiveImages to save
      */
-    void saveImages(Bitmap fir, Bitmap rgb) {
+    public void saveImages(FrameDataHolder images) {
         Date now = new Date();
 
         @SuppressLint("SimpleDateFormat")
         String timeStamp = new SimpleDateFormat("yyy_MM_dd_HH_mm_ss_SSS").format(now);
 
-        writeImage(fir, "fir_" + timeStamp + ".png", Long.toString(now.getTime()));
-        writeImage(rgb, "rgb_" + timeStamp + ".png", Long.toString(now.getTime()));
+        writeImage(images.firBitmap, "fir_" + timeStamp + ".png", Long.toString(now.getTime()));
+        writeImage(images.rgbBitmap, "rgb_" + timeStamp + ".png", Long.toString(now.getTime()));
     }
 
 }

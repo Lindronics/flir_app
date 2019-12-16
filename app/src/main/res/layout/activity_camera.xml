@@ -4,9 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CameraActivity">
+    tools:context=".activities.CameraActivity">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -25,14 +25,15 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1">
+            android:layout_below="@+id/first_prediction_box"
+            android:layout_above="@+id/camera_button">
 
             <ImageView
                 android:id="@+id/fir_view"
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:contentDescription="FIR image"
+                android:contentDescription="@string/fir"
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
 
@@ -41,7 +42,7 @@
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="match_parent"
-                android:contentDescription="RGB image"
+                android:contentDescription="@string/rgb"
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
         </LinearLayout>
@@ -50,10 +51,12 @@
             android:id="@+id/camera_button"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_gravity="center_horizontal"
-            android:text="Record"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/ic_camera_capture_ready"
             android:onClick="toggleCapture"
-            android:background="@drawable/ic_camera_capture_ready"/>
-    </LinearLayout>
+            android:textOff="@string/start_recording"
+            android:textOn="@string/stop_recording" />
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

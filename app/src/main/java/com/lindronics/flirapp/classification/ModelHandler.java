@@ -1,4 +1,4 @@
-package com.lindronics.flirapp;
+package com.lindronics.flirapp.classification;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.os.Trace;
 
 import androidx.annotation.NonNull;
+
+import com.lindronics.flirapp.camera.FrameDataHolder;
 
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
@@ -23,7 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
 
-class ModelHandler {
+public class ModelHandler {
 
     /**
      * Interpreter for inference
@@ -84,7 +86,7 @@ class ModelHandler {
         GPU
     }
 
-    ModelHandler(Activity activity, Device device, int numThreads, Boolean isBinaryClassifier) throws IOException {
+    public ModelHandler(Activity activity, Device device, int numThreads, Boolean isBinaryClassifier) throws IOException {
 
         this.isBinaryClassifier = isBinaryClassifier;
 
@@ -130,12 +132,12 @@ class ModelHandler {
     /**
      * Runs inference and returns the classification results.
      */
-    List<Recognition> recognizeImage(final Bitmap rgb, final Bitmap fir) {
+    public List<Recognition> recognizeImage(final FrameDataHolder images) {
         Trace.beginSection("recognizeImage");
 
-        // Load images
+        // Load receiveImages
         Trace.beginSection("loadImage");
-        float[][][][] inputImageBuffer = loadImage(rgb, fir);
+        float[][][][] inputImageBuffer = loadImage(images);
         Trace.endSection();
 
         // Runs the inference call.
@@ -166,11 +168,11 @@ class ModelHandler {
     /**
      * Loads input image, and applies pre-processing.
      */
-    private float[][][][] loadImage(final Bitmap rgbBitmap, final Bitmap firBitmap) {
+    private float[][][][] loadImage(final FrameDataHolder images) {
 
         // Rescale to expected dimensions
-        Bitmap rgbRescaled = Bitmap.createScaledBitmap(rgbBitmap, imageWidth, imageHeight, true);
-        Bitmap firRescaled = Bitmap.createScaledBitmap(firBitmap, imageWidth, imageHeight, true);
+        Bitmap rgbRescaled = Bitmap.createScaledBitmap(images.rgbBitmap, imageWidth, imageHeight, true);
+        Bitmap firRescaled = Bitmap.createScaledBitmap(images.firBitmap, imageWidth, imageHeight, true);
 
         int[] rgbArray = new int[imageWidth * imageHeight];
         rgbRescaled.getPixels(rgbArray, 0, imageWidth, 0, 0, imageWidth, imageHeight);
@@ -223,7 +225,7 @@ class ModelHandler {
     /**
      * Closes the interpreter and model to release resources.
      */
-    void close() {
+    public void close() {
         if (tflite != null) {
             tflite.close();
             tflite = null;
@@ -243,7 +245,7 @@ class ModelHandler {
     /**
      * An immutable result returned by a Classifier describing what was recognized.
      */
-    static class Recognition {
+    public static class Recognition {
         /**
          * A unique identifier for what has been recognized. Specific to the class, not the instance of
          * the object.
@@ -268,15 +270,15 @@ class ModelHandler {
             this.confidence = confidence;
         }
 
-        String getId() {
+        public String getId() {
             return id;
         }
 
-        String getTitle() {
+        public String getTitle() {
             return title;
         }
 
-        Float getConfidence() {
+        public Float getConfidence() {
             return confidence;
         }
 
