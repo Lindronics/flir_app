@@ -10,7 +10,6 @@ import com.lindronics.flirapp.R;
 import com.lindronics.flirapp.camera.FrameDataHolder;
 import com.lindronics.flirapp.classification.ModelHandler;
 
-
 import java.io.IOException;
 import java.util.List;
 
@@ -22,6 +21,16 @@ public class ClassifierActivity extends AbstractCameraActivity {
 
     private TextView firstPredictionBox;
     private TextView secondPredictionBox;
+
+    /**
+     * Used so that classification is not run on every frame.
+     */
+    private int frameCounter;
+
+    /**
+     * Frames to skip before classifying.
+     */
+    private static final int skipFrames = 3;
 
 
     /**
@@ -37,6 +46,8 @@ public class ClassifierActivity extends AbstractCameraActivity {
 
         firstPredictionBox = findViewById(R.id.first_prediction_box);
         secondPredictionBox = findViewById(R.id.second_prediction_box);
+
+        frameCounter = 0;
     }
 
     @Override
@@ -49,8 +60,15 @@ public class ClassifierActivity extends AbstractCameraActivity {
     public void receiveImages(FrameDataHolder images) {
         super.receiveImages(images);
 
+        // Skip frames
+        frameCounter = (frameCounter + 1) % skipFrames;
+        if (frameCounter != 0) {
+            return;
+        }
+
         // Run classification
         runInBackground(() -> {
+            long t1 = System.currentTimeMillis();
             if (modelHandler != null) {
                 final List<ModelHandler.Recognition> results =
                         modelHandler.recognizeImage(images);
@@ -58,11 +76,14 @@ public class ClassifierActivity extends AbstractCameraActivity {
 
                 runOnUiThread(() -> showResultsInBottomSheet(results));
             }
+            long t2 = System.currentTimeMillis();
+            Log.i("ELAPSED", (t2 - t1) + " ms");
         });
     }
 
     /**
      * Display classification results
+     *
      * @param results List of results
      */
     @UiThread
@@ -91,11 +112,12 @@ public class ClassifierActivity extends AbstractCameraActivity {
         }
 
         try {
-            modelHandler = new ModelHandler(this, ModelHandler.Device.CPU, 2, true);
+            modelHandler = new ModelHandler(this, ModelHandler.Device.GPU, 2, true);
         } catch (IOException e) {
             e.printStackTrace();
             finish();
         }
+        frameCounter = 0;
     }
 
 
@@ -103,5 +125,6 @@ public class ClassifierActivity extends AbstractCameraActivity {
      * Behaviour already covered by superclass
      */
     @Override
-    void onDisconnected() { }
+    void onDisconnected() {
+    }
 }
