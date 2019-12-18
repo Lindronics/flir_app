@@ -103,10 +103,6 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
     @Override
     public void receiveImages(FrameDataHolder images) {
 
-        if (applyTransformation) {
-            images.rgbBitmap = transformer.transform(images.rgbBitmap);
-        }
-
         try {
             framesBuffer.put(images);
         } catch (InterruptedException e) {
@@ -118,6 +114,9 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
             Log.d(TAG, "framebuffer size:" + framesBuffer.size());
             FrameDataHolder poll = framesBuffer.poll();
             if (poll != null) {
+                if (applyTransformation) {
+                    poll.rgbBitmap = transformer.transform(poll.rgbBitmap);
+                }
                 firImage.setImageBitmap(poll.firBitmap);
                 rgbImage.setImageBitmap(poll.rgbBitmap);
             }
