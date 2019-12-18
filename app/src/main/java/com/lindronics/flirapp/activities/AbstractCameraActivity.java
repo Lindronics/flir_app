@@ -1,5 +1,6 @@
 package com.lindronics.flirapp.activities;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;

@@ -4,11 +4,21 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Trace;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.lindronics.flirapp.R;
+import com.lindronics.flirapp.camera.AffineTransformer;
 import com.lindronics.flirapp.camera.FrameDataHolder;
 
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.osgi.OpenCVInterface;
 import org.tensorflow.lite.DataType;
 import org.tensorflow.lite.Interpreter;
 import org.tensorflow.lite.gpu.GpuDelegate;
@@ -18,6 +28,7 @@ import org.tensorflow.lite.support.label.TensorLabel;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,6 +88,8 @@ public class ModelHandler {
      */
     private static final int MAX_RESULTS = 3;
 
+    private AffineTransformer transformer;
+
     /**
      * Possible devices to run the model on
      */
@@ -126,6 +139,8 @@ public class ModelHandler {
 
         // Create the output tensor and its processor.
         outputProbabilityBuffer = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
+
+        transformer = new AffineTransformer(imageWidth, imageHeight);
     }
 
 
@@ -173,6 +188,8 @@ public class ModelHandler {
         // Rescale to expected dimensions
         Bitmap rgbRescaled = Bitmap.createScaledBitmap(images.rgbBitmap, imageWidth, imageHeight, true);
         Bitmap firRescaled = Bitmap.createScaledBitmap(images.firBitmap, imageWidth, imageHeight, true);
+
+        rgbRescaled = transformer.transform(rgbRescaled);
 
         int[] rgbArray = new int[imageWidth * imageHeight];
         rgbRescaled.getPixels(rgbArray, 0, imageWidth, 0, 0, imageWidth, imageHeight);
