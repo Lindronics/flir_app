@@ -7,4 +7,5 @@
     <string name="rgb">RGB Image</string>
     <string name="fir">FIR image</string>
     <string name="not_available">N/A</string>
+    <string name="apply_transformation">Transform</string>
 </resources>

@@ -4,7 +4,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,11 +16,13 @@ import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.google.gson.Gson;
 import com.lindronics.flirapp.R;
+import com.lindronics.flirapp.camera.AffineTransformer;
 import com.lindronics.flirapp.camera.CameraHandler;
 import com.lindronics.flirapp.camera.FrameDataHolder;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 abstract class AbstractCameraActivity extends AppCompatActivity implements CameraHandler.StreamDataListener {
@@ -34,6 +38,8 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
     private ImageView firImage;
 
     private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
+    private boolean applyTransformation;
+    private AffineTransformer transformer;
 
     /**
      * Executed when activity is created.
@@ -60,6 +66,12 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
         String identityString = extras.getString("cameraIdentity");
         Identity cameraIdentity = gson.fromJson(identityString, Identity.class);
         cameraHandler.connect(cameraIdentity, connectionStatusListener);
+
+        try {
+            transformer = new AffineTransformer(this);
+        } catch (IOException e) {
+            finish();
+        }
     }
 
     @Override
@@ -101,6 +113,9 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
             Log.d(TAG, "framebuffer size:" + framesBuffer.size());
             FrameDataHolder poll = framesBuffer.poll();
             if (poll != null) {
+                if (applyTransformation) {
+                    poll.rgbBitmap = transformer.transform(poll.rgbBitmap);
+                }
                 firImage.setImageBitmap(poll.firBitmap);
                 rgbImage.setImageBitmap(poll.rgbBitmap);
             }
@@ -111,7 +126,7 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
      * Run procedure in background
      * @param r Runnable to run
      */
-    protected synchronized void runInBackground(final Runnable r) {
+    synchronized void runInBackground(final Runnable r) {
         if (handler != null) {
             handler.post(r);
         }
@@ -130,13 +145,12 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
 
                 switch (connectionStatus) {
                     case CONNECTING:
+                    case DISCONNECTING:
                         break;
                     case CONNECTED: {
                         cameraHandler.startStream(AbstractCameraActivity.this);
                     }
                     break;
-                    case DISCONNECTING:
-                        break;
                     case DISCONNECTED: {
                         onDisconnected();
                         finish();
@@ -146,6 +160,14 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
             });
         }
     };
+
+    /**
+     * Event listener for enabling or disabling image transformation
+     */
+    public void toggleTransformation(View view) {
+        Switch toggle = (Switch) view;
+        applyTransformation = toggle.isChecked();
+    }
 
     abstract void onDisconnected();
 }

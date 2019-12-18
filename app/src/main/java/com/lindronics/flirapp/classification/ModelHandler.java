@@ -7,6 +7,7 @@ import android.os.Trace;
 
 import androidx.annotation.NonNull;
 
+import com.lindronics.flirapp.camera.AffineTransformer;
 import com.lindronics.flirapp.camera.FrameDataHolder;
 
 import org.tensorflow.lite.DataType;
@@ -77,6 +78,8 @@ public class ModelHandler {
      */
     private static final int MAX_RESULTS = 3;
 
+    private AffineTransformer transformer;
+
     /**
      * Possible devices to run the model on
      */
@@ -126,6 +129,8 @@ public class ModelHandler {
 
         // Create the output tensor and its processor.
         outputProbabilityBuffer = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
+
+        transformer = new AffineTransformer(activity);
     }
 
 
@@ -173,6 +178,8 @@ public class ModelHandler {
         // Rescale to expected dimensions
         Bitmap rgbRescaled = Bitmap.createScaledBitmap(images.rgbBitmap, imageWidth, imageHeight, true);
         Bitmap firRescaled = Bitmap.createScaledBitmap(images.firBitmap, imageWidth, imageHeight, true);
+
+        rgbRescaled = transformer.transform(rgbRescaled);
 
         int[] rgbArray = new int[imageWidth * imageHeight];
         rgbRescaled.getPixels(rgbArray, 0, imageWidth, 0, 0, imageWidth, imageHeight);

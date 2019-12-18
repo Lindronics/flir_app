@@ -77,4 +77,9 @@ public class CameraActivity extends AbstractCameraActivity {
     void onDisconnected() {
         endCapture();
     }
+
+    @Override
+    public void toggleTransformation(View view) {
+        super.toggleTransformation(view);
+    }
 }

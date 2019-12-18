@@ -2,6 +2,7 @@ package com.lindronics.flirapp.activities;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.UiThread;
@@ -21,6 +22,8 @@ public class ClassifierActivity extends AbstractCameraActivity {
 
     private TextView firstPredictionBox;
     private TextView secondPredictionBox;
+    private ProgressBar firstPredictionPb;
+    private ProgressBar secondPredictionPb;
 
     /**
      * Used so that classification is not run on every frame.
@@ -46,6 +49,8 @@ public class ClassifierActivity extends AbstractCameraActivity {
 
         firstPredictionBox = findViewById(R.id.first_prediction_box);
         secondPredictionBox = findViewById(R.id.second_prediction_box);
+        firstPredictionPb = findViewById(R.id.first_prediction_bar);
+        secondPredictionPb = findViewById(R.id.second_prediction_bar);
 
         frameCounter = 0;
     }
@@ -92,11 +97,13 @@ public class ClassifierActivity extends AbstractCameraActivity {
             ModelHandler.Recognition recognition = results.get(0);
             if (recognition != null) {
                 firstPredictionBox.setText(recognition.toString());
+                firstPredictionPb.setProgress((int)(float) (recognition.getConfidence() * 100));
             }
 
             ModelHandler.Recognition recognition2 = results.get(1);
             if (recognition != null) {
                 secondPredictionBox.setText(recognition2.toString());
+                secondPredictionPb.setProgress((int)(float) (recognition2.getConfidence() * 100));
             }
         }
     }
