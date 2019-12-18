@@ -1,6 +1,5 @@
 package com.lindronics.flirapp.activities;
 
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -127,7 +126,7 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
      * Run procedure in background
      * @param r Runnable to run
      */
-    protected synchronized void runInBackground(final Runnable r) {
+    synchronized void runInBackground(final Runnable r) {
         if (handler != null) {
             handler.post(r);
         }
@@ -146,13 +145,12 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
 
                 switch (connectionStatus) {
                     case CONNECTING:
+                    case DISCONNECTING:
                         break;
                     case CONNECTED: {
                         cameraHandler.startStream(AbstractCameraActivity.this);
                     }
                     break;
-                    case DISCONNECTING:
-                        break;
                     case DISCONNECTED: {
                         onDisconnected();
                         finish();
