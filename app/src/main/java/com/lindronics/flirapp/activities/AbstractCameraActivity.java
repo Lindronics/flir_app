@@ -23,6 +23,7 @@ import com.lindronics.flirapp.camera.FrameDataHolder;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 abstract class AbstractCameraActivity extends AppCompatActivity implements CameraHandler.StreamDataListener {
@@ -67,8 +68,11 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
         Identity cameraIdentity = gson.fromJson(identityString, Identity.class);
         cameraHandler.connect(cameraIdentity, connectionStatusListener);
 
-        // TODO remove hard-coded dimensions
-        transformer = new AffineTransformer(240, 320);
+        try {
+            transformer = new AffineTransformer(this);
+        } catch (IOException e) {
+            finish();
+        }
     }
 
     @Override

@@ -140,7 +140,7 @@ public class ModelHandler {
         // Create the output tensor and its processor.
         outputProbabilityBuffer = TensorBuffer.createFixedSize(probabilityShape, probabilityDataType);
 
-        transformer = new AffineTransformer(imageWidth, imageHeight);
+        transformer = new AffineTransformer(activity);
     }
 
 
