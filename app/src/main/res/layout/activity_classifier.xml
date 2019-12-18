@@ -22,6 +22,13 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <ProgressBar
+            android:id="@+id/first_prediction_bar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/first_prediction_box"/>
+
         <TextView
             android:id="@+id/second_prediction_box"
             android:layout_width="wrap_content"
@@ -32,6 +39,14 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <ProgressBar
+            android:id="@+id/second_prediction_bar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/first_prediction_box"
+            android:layout_toEndOf="@+id/first_prediction_box"/>
 
         <LinearLayout
             android:layout_width="match_parent"
