@@ -27,10 +27,12 @@
         android:fullBackupContent="@xml/backup_descriptor">
         <activity
             android:name=".activities.CameraActivity"
-            android:label="Camera"/>
+            android:label="Camera"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".activities.ClassifierActivity"
-            android:label="Classifier"/>
+            android:label="Classifier"
+            android:screenOrientation="portrait"/>
         <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

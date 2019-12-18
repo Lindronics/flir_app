@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_below="@+id/first_prediction_box"
-            android:layout_above="@+id/camera_button">
+            android:layout_above="@+id/transformation_switch">
 
             <ImageView
                 android:id="@+id/fir_view"
@@ -46,6 +46,16 @@
                 android:maxWidth="50dp"
                 android:minWidth="50dp" />
         </LinearLayout>
+
+        <Switch
+            android:id="@+id/transformation_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/camera_button"
+            android:layout_centerHorizontal="true"
+            android:paddingBottom="20dp"
+            android:text="@string/apply_transformation"
+            android:onClick="toggleTransformation"/>
 
         <ToggleButton
             android:id="@+id/camera_button"

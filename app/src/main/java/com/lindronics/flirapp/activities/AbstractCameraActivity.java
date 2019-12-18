@@ -5,7 +5,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -15,6 +17,7 @@ import com.flir.thermalsdk.live.connectivity.ConnectionStatus;
 import com.flir.thermalsdk.live.connectivity.ConnectionStatusListener;
 import com.google.gson.Gson;
 import com.lindronics.flirapp.R;
+import com.lindronics.flirapp.camera.AffineTransformer;
 import com.lindronics.flirapp.camera.CameraHandler;
 import com.lindronics.flirapp.camera.FrameDataHolder;
 
@@ -35,6 +38,8 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
     private ImageView firImage;
 
     private LinkedBlockingQueue<FrameDataHolder> framesBuffer = new LinkedBlockingQueue<>(21);
+    private boolean applyTransformation;
+    private AffineTransformer transformer;
 
     /**
      * Executed when activity is created.
@@ -61,6 +66,9 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
         String identityString = extras.getString("cameraIdentity");
         Identity cameraIdentity = gson.fromJson(identityString, Identity.class);
         cameraHandler.connect(cameraIdentity, connectionStatusListener);
+
+        // TODO remove hard-coded dimensions
+        transformer = new AffineTransformer(240, 320);
     }
 
     @Override
@@ -90,6 +98,10 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
      */
     @Override
     public void receiveImages(FrameDataHolder images) {
+
+        if (applyTransformation) {
+            images.rgbBitmap = transformer.transform(images.rgbBitmap);
+        }
 
         try {
             framesBuffer.put(images);
@@ -147,6 +159,14 @@ abstract class AbstractCameraActivity extends AppCompatActivity implements Camer
             });
         }
     };
+
+    /**
+     * Event listener for enabling or disabling image transformation
+     */
+    public void toggleTransformation(View view) {
+        Switch toggle = (Switch) view;
+        applyTransformation = toggle.isChecked();
+    }
 
     abstract void onDisconnected();
 }
