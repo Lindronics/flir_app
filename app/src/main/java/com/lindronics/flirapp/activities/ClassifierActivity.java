@@ -83,7 +83,7 @@ public class ClassifierActivity extends AbstractCameraActivity {
                         modelHandler.recognizeImage(images);
                 Log.i("UPDATE", "Confidence: " + results.get(0).getConfidence());
 
-                runOnUiThread(() -> showResultsInBottomSheet(results));
+                runOnUiThread(() -> showResults(results));
             }
             long t2 = System.currentTimeMillis();
             Log.i("ELAPSED", (t2 - t1) + " ms");
@@ -96,7 +96,7 @@ public class ClassifierActivity extends AbstractCameraActivity {
      * @param results List of results
      */
     @UiThread
-    private void showResultsInBottomSheet(List<ModelHandler.Recognition> results) {
+    private void showResults(List<ModelHandler.Recognition> results) {
         if (results != null && results.size() >= 2) {
             ModelHandler.Recognition recognition = results.get(0);
             if (recognition != null) {
