@@ -12,54 +12,91 @@
         android:orientation="vertical"
         android:layout_marginTop="20dp">
 
-        <TextView
-            android:id="@+id/first_prediction_box"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:text="@string/not_available"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginBottom="5dp"/>
-
-        <ProgressBar
-            android:id="@+id/first_prediction_bar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_toEndOf="@+id/first_prediction_box"
-            android:layout_alignParentEnd="true"
+            android:id="@+id/first_prediction_row"
+            android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
-            android:layout_marginStart="50dp"/>
+            android:layout_marginBottom="5dp">
 
-        <TextView
-            android:id="@+id/second_prediction_box"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/first_prediction_box"
-            android:text="@string/not_available"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            <TextView
+                android:id="@+id/first_prediction_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/not_available"
+                android:layout_weight="2" />
 
-        <ProgressBar
-            android:id="@+id/second_prediction_bar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="wrap_content"
+            <ProgressBar
+                android:id="@+id/first_prediction_bar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="50dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/first_prediction_box"
-            android:layout_toEndOf="@+id/first_prediction_box"
-            android:layout_alignParentEnd="true"
+            android:id="@+id/second_prediction_row"
+            android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
-            android:layout_marginStart="50dp"/>
+            android:layout_below="@+id/first_prediction_row"
+            android:layout_marginBottom="5dp">
+
+            <TextView
+                android:id="@+id/second_prediction_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/not_available"
+                android:layout_weight="2"/>
+
+            <ProgressBar
+                android:id="@+id/second_prediction_bar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="50dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/third_prediction_row"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_below="@+id/second_prediction_row"
+            android:layout_marginBottom="5dp">
+
+            <TextView
+                android:id="@+id/third_prediction_box"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/not_available"
+                android:layout_weight="2"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ProgressBar
+                android:id="@+id/third_prediction_bar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="50dp"/>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_below="@+id/second_prediction_box"
+            android:layout_below="@+id/third_prediction_row"
             android:layout_above="@+id/transformation_switch">
 
             <ImageView

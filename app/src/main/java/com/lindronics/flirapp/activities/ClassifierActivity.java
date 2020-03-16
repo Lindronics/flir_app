@@ -22,8 +22,10 @@ public class ClassifierActivity extends AbstractCameraActivity {
 
     private TextView firstPredictionBox;
     private TextView secondPredictionBox;
+    private TextView thirdPredictionBox;
     private ProgressBar firstPredictionPb;
     private ProgressBar secondPredictionPb;
+    private ProgressBar thirdPredictionPb;
 
     /**
      * Used so that classification is not run on every frame.
@@ -49,8 +51,10 @@ public class ClassifierActivity extends AbstractCameraActivity {
 
         firstPredictionBox = findViewById(R.id.first_prediction_box);
         secondPredictionBox = findViewById(R.id.second_prediction_box);
+        thirdPredictionBox = findViewById(R.id.third_prediction_box);
         firstPredictionPb = findViewById(R.id.first_prediction_bar);
         secondPredictionPb = findViewById(R.id.second_prediction_bar);
+        thirdPredictionPb = findViewById(R.id.third_prediction_bar);
 
         frameCounter = 0;
     }
@@ -101,9 +105,15 @@ public class ClassifierActivity extends AbstractCameraActivity {
             }
 
             ModelHandler.Recognition recognition2 = results.get(1);
-            if (recognition != null) {
+            if (recognition2 != null) {
                 secondPredictionBox.setText(recognition2.toString());
                 secondPredictionPb.setProgress((int)(float) (recognition2.getConfidence() * 100));
+            }
+
+            ModelHandler.Recognition recognition3 = results.get(2);
+            if (recognition3 != null) {
+                thirdPredictionBox.setText(recognition3.toString());
+                thirdPredictionPb.setProgress((int)(float) (recognition3.getConfidence() * 100));
             }
         }
     }
@@ -119,7 +129,7 @@ public class ClassifierActivity extends AbstractCameraActivity {
         }
 
         try {
-            modelHandler = new ModelHandler(this, ModelHandler.Device.GPU, 2, true);
+            modelHandler = new ModelHandler(this, ModelHandler.Device.GPU, 2, false);
         } catch (IOException e) {
             e.printStackTrace();
             finish();

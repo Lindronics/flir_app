@@ -1,2 +1,8 @@
-nothing
-person
+cat
+pony
+hamburg-chicken
+alpaca
+muscovy-duck
+chicken
+silkie-chicken
+goose
