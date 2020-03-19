@@ -12,6 +12,7 @@ import com.lindronics.flirapp.camera.FrameDataHolder;
 import com.lindronics.flirapp.classification.ModelHandler;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ClassifierActivity extends AbstractCameraActivity {
@@ -26,6 +27,9 @@ public class ClassifierActivity extends AbstractCameraActivity {
     private ProgressBar firstPredictionPb;
     private ProgressBar secondPredictionPb;
     private ProgressBar thirdPredictionPb;
+    private TextView elapsedIndicator;
+
+    private List<Integer> executionTimes;
 
     /**
      * Used so that classification is not run on every frame.
@@ -35,7 +39,7 @@ public class ClassifierActivity extends AbstractCameraActivity {
     /**
      * Frames to skip before classifying.
      */
-    private static final int skipFrames = 3;
+    private static final int skipFrames = 1;
 
 
     /**
@@ -55,8 +59,10 @@ public class ClassifierActivity extends AbstractCameraActivity {
         firstPredictionPb = findViewById(R.id.first_prediction_bar);
         secondPredictionPb = findViewById(R.id.second_prediction_bar);
         thirdPredictionPb = findViewById(R.id.third_prediction_bar);
+        elapsedIndicator = findViewById(R.id.elapsed_indicator);
 
         frameCounter = 0;
+        executionTimes = new ArrayList<>();
     }
 
     @Override
@@ -87,6 +93,16 @@ public class ClassifierActivity extends AbstractCameraActivity {
             }
             long t2 = System.currentTimeMillis();
             Log.i("ELAPSED", (t2 - t1) + " ms");
+            executionTimes.add((int) (t2 - t1));
+
+            // Update displayed execution time every 10 predictions
+            if (executionTimes.size() % 10 == 0) {
+                int sum = 0;
+                for (int i = executionTimes.size() - 10; i < executionTimes.size(); i++) {
+                    sum += executionTimes.get(i);
+                }
+                elapsedIndicator.setText("Prediction time: " + sum / 10 + " ms");
+            }
         });
     }
 

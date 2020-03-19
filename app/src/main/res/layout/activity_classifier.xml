@@ -93,10 +93,21 @@
 
         </LinearLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/third_prediction_row"
+            android:id="@+id/elapsed_indicator"
+            android:text="@string/not_available"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="5dp">
+        </TextView>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_below="@+id/third_prediction_row"
+            android:layout_below="@+id/elapsed_indicator"
             android:layout_above="@+id/transformation_switch">
 
             <ImageView

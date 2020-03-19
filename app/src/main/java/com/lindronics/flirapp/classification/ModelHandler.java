@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Trace;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
