@@ -96,12 +96,22 @@ public class ClassifierActivity extends AbstractCameraActivity {
             executionTimes.add((int) (t2 - t1));
 
             // Update displayed execution time every 10 predictions
-            if (executionTimes.size() % 10 == 0) {
+            final int elapsedUpdate = 20;
+            if (executionTimes.size() % elapsedUpdate == 0) {
                 int sum = 0;
-                for (int i = executionTimes.size() - 10; i < executionTimes.size(); i++) {
-                    sum += executionTimes.get(i);
+                for (int i : executionTimes) {
+                    sum += i;
                 }
-                elapsedIndicator.setText("Prediction time: " + sum / 10 + " ms");
+                double mean = (double) sum / executionTimes.size();
+                double std = 0;
+                for (int i : executionTimes) {
+                    std += Math.pow(i - mean, 2);
+                }
+                std = Math.sqrt(std / executionTimes.size());
+                double finalStd = std;
+                runOnUiThread(() ->
+                        elapsedIndicator.setText(String.format("Mean time: %.2f ms, std: %.2f ms, n: %d", mean, finalStd, executionTimes.size()))
+                );
             }
         });
     }
@@ -117,19 +127,19 @@ public class ClassifierActivity extends AbstractCameraActivity {
             ModelHandler.Recognition recognition = results.get(0);
             if (recognition != null) {
                 firstPredictionBox.setText(recognition.toString());
-                firstPredictionPb.setProgress((int)(float) (recognition.getConfidence() * 100));
+                firstPredictionPb.setProgress((int) (float) (recognition.getConfidence() * 100));
             }
 
             ModelHandler.Recognition recognition2 = results.get(1);
             if (recognition2 != null) {
                 secondPredictionBox.setText(recognition2.toString());
-                secondPredictionPb.setProgress((int)(float) (recognition2.getConfidence() * 100));
+                secondPredictionPb.setProgress((int) (float) (recognition2.getConfidence() * 100));
             }
 
             ModelHandler.Recognition recognition3 = results.get(2);
             if (recognition3 != null) {
                 thirdPredictionBox.setText(recognition3.toString());
-                thirdPredictionPb.setProgress((int)(float) (recognition3.getConfidence() * 100));
+                thirdPredictionPb.setProgress((int) (float) (recognition3.getConfidence() * 100));
             }
         }
     }
