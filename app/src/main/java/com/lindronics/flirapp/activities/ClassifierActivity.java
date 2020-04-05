@@ -109,8 +109,7 @@ public class ClassifierActivity extends AbstractCameraActivity {
                 }
                 std = Math.sqrt(std / executionTimes.size());
                 double finalStd = std;
-                runOnUiThread(() ->
-                        elapsedIndicator.setText(String.format("Mean time: %.2f ms, std: %.2f ms, n: %d", mean, finalStd, executionTimes.size()))
+                runOnUiThread(() -> elapsedIndicator.setText(String.format("Mean time: %.2f ms, std: %.2f ms, n: %d", mean, finalStd, executionTimes.size()))
                 );
             }
         });
